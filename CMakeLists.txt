@@ -10,7 +10,7 @@ set(galunga_source_files
 	src/main.cpp
 	src/Renderer.cpp
 	src/Application.cpp
-)
+    vendor/enet/enet.cpp)
 
 set(galunga_header_files
 	include/Renderer.h
