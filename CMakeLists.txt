@@ -6,8 +6,6 @@ project(Galunga)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory(external)
-
 set(galunga_source_files
 	src/main.cpp
 	src/Renderer.cpp
@@ -22,7 +20,7 @@ set(galunga_header_files
 add_executable(galunga ${galunga_source_files} ${galunga_header_files})
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT galunga)
-target_include_directories(galunga PRIVATE include)
+target_include_directories(galunga PRIVATE include vendor)
 
 find_package(OpenGL REQUIRED)
 
@@ -72,5 +70,7 @@ if(${FORCE_COLORED_OUTPUT})
        add_compile_options (-fcolor-diagnostics)
     endif()
 endif()
+
+add_subdirectory(external)
 
 target_link_libraries(galunga fwog glfw lib_glad)
