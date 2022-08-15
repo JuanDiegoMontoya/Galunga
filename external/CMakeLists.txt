@@ -30,7 +30,13 @@ FetchContent_Declare(
     GIT_TAG        33a0e0622bcd10f49a59f33c2ae06938723935c0
 )
 
-FetchContent_MakeAvailable(glm glfw fwog)
+FetchContent_Declare(
+    EnTT
+    GIT_REPOSITORY https://github.com/skypjack/entt.git
+    GIT_TAG        85ca2f356234de3c945667d12857dea2a26c214d
+)
+
+FetchContent_MakeAvailable(glm glfw fwog EnTT)
 
 FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)

@@ -73,4 +73,4 @@ endif()
 
 add_subdirectory(external)
 
-target_link_libraries(galunga fwog glfw lib_glad)
+target_link_libraries(galunga fwog glfw lib_glad EnTT::EnTT)
