@@ -1,4 +1,3 @@
-#pragma once
 // From: https://github.com/zpl-c/enet/tree/9da697bf8a2d869c55f90681e6376fa3b85813c8
 // Jaker changes: disabled some msvc warnings
 /**
