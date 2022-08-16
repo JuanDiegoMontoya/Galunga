@@ -9,8 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(galunga_source_files
 	src/main.cpp
 	src/Renderer.cpp
-	src/Application.cpp
-    vendor/enet/enet.cpp)
+	src/Application.cpp)
 
 set(galunga_header_files
 	include/Renderer.h
@@ -49,9 +48,6 @@ target_compile_options(galunga
 	-pedantic-errors
 	-Wno-missing-field-initializers
 	-Wno-unused-result
-	#-Werror
-	#-Wconversion
-	#-Wsign-conversion
 	>
 	$<$<CXX_COMPILER_ID:MSVC>:
 	/W4
@@ -73,4 +69,5 @@ endif()
 
 add_subdirectory(external)
 
-target_link_libraries(galunga fwog glfw lib_glad EnTT::EnTT)
+target_include_directories(galunga PRIVATE ${enet_SOURCE_DIR}/include) # dumb hack
+target_link_libraries(galunga fwog glfw lib_glad EnTT::EnTT stb)

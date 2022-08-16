@@ -36,7 +36,21 @@ FetchContent_Declare(
     GIT_TAG        85ca2f356234de3c945667d12857dea2a26c214d
 )
 
-FetchContent_MakeAvailable(glm glfw fwog EnTT)
+FetchContent_Declare(
+    enet
+    GIT_REPOSITORY https://github.com/JuanDiegoMontoya/enet.git
+    GIT_TAG        a683bb83dde5552871764f53f6a8f90d8d2e3d52
+)
+
+FetchContent_Declare(
+    stb
+    GIT_REPOSITORY https://github.com/JuanDiegoMontoya/stb.git
+    GIT_TAG        53a36967a8012590940122fc2e2117cc8f7eb34c
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+)
+
+FetchContent_MakeAvailable(glm glfw fwog EnTT enet)
 
 FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)
@@ -57,6 +71,13 @@ if(NOT imgui_POPULATED)
         ${glfw_SOURCE_DIR}/include)
 
     target_link_libraries(lib_imgui PRIVATE glfw)
+endif()
+
+FetchContent_GetProperties(stb)
+if(NOT stb_POPULATED)
+    FetchContent_Populate(stb)
+    add_library(stb INTERFACE)
+    target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
 endif()
 
 target_compile_definitions(glm INTERFACE GLM_FORCE_SILENT_WARNINGS)
