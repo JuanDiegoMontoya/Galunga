@@ -71,3 +71,6 @@ add_subdirectory(external)
 
 target_include_directories(galunga PRIVATE ${enet_SOURCE_DIR}/include) # dumb hack
 target_link_libraries(galunga fwog glfw lib_glad EnTT::EnTT stb)
+
+add_custom_target(copy_assets ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/data/assets ${CMAKE_CURRENT_BINARY_DIR}/assets)
+add_dependencies(galunga copy_assets)

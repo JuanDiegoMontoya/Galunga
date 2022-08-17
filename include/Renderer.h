@@ -1,10 +1,12 @@
 #pragma
 #include <string_view>
 
+struct GLFWwindow;
+
 class Renderer
 {
 public:
-  Renderer();
+  Renderer(GLFWwindow* window);
   ~Renderer();
 
   Renderer(const Renderer&) = delete;
@@ -14,6 +16,8 @@ public:
 
   void DrawBackground();
 
-private:
+  struct Resources;
 
+private:
+  Resources* _resources;
 };

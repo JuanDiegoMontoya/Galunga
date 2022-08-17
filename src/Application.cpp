@@ -48,7 +48,7 @@ Application::Application(std::string title)
   glfwMakeContextCurrent(_window);
   glfwSwapInterval(1);
 
-  _renderer = new Renderer;
+  _renderer = new Renderer(_window);
 }
 
 Application::~Application()
