@@ -1,4 +1,6 @@
 #include "Renderer.h"
+#include "Gassert.h"
+#include "utils/LoadFile.h"
 #include <Fwog/Rendering.h>
 #include <Fwog/Pipeline.h>
 #include <Fwog/Texture.h>
@@ -9,16 +11,14 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
-#include <fstream>
+#include <algorithm>
+#include <execution>
+#include <atomic>
 
-#include <stb_image.h>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-std::string LoadFile(std::string_view path)
-{
-  std::ifstream file{ path.data() };
-  return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
-}
-
+#if !defined(NDEBUG)
 static void GLAPIENTRY glErrorCallback(
   GLenum source,
   GLenum type,
@@ -79,6 +79,7 @@ static void GLAPIENTRY glErrorCallback(
 
   std::cout << errStream.str() << '\n';
 }
+#endif
 
 struct Renderer::Resources
 {
@@ -88,11 +89,15 @@ struct Renderer::Resources
     uint32_t width{};
     uint32_t height{};
     Fwog::Texture output_ldr;
+    float AspectRatio()
+    {
+      return static_cast<float>(width) / height;
+    }
   };
 
   Frame frame;
-  Fwog::Texture testTex;
-  Fwog::GraphicsPipeline testPipe;
+  Fwog::GraphicsPipeline backgroundPipeline;
+  Fwog::GraphicsPipeline quadBatchedPipeline;
 };
 
 Renderer::Renderer(GLFWwindow* window)
@@ -110,38 +115,31 @@ Renderer::Renderer(GLFWwindow* window)
   glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 #endif
 
+  glEnable(GL_FRAMEBUFFER_SRGB);
+
   int iframebufferWidth{};
   int iframebufferHeight{};
   glfwGetFramebufferSize(window, &iframebufferWidth, &iframebufferHeight);
   uint32_t framebufferWidth = static_cast<uint32_t>(iframebufferWidth);
   uint32_t framebufferHeight = static_cast<uint32_t>(iframebufferHeight);
 
-  int x{};
-  int y{};
-  int nc{};
-  stbi_set_flip_vertically_on_load(true);
-  auto* data = stbi_load("assets/textures/test.png", &x, &y, &nc, 4);
-
   _resources = new Resources(
     {
       .frame = { .width = framebufferWidth,
                  .height = framebufferHeight,
                  .output_ldr = Fwog::CreateTexture2D({framebufferWidth, framebufferHeight}, Fwog::Format::R8G8B8A8_SRGB) },
-      .testTex = Fwog::CreateTexture2D({ uint32_t(x), uint32_t(y) }, Fwog::Format::R8G8B8A8_UNORM)
     });
 
-  _resources->testTex.SubImage({ .dimension = Fwog::UploadDimension::TWO,
-                                 .size = _resources->testTex.Extent(),
-                                 .format = Fwog::UploadFormat::RGBA,
-                                 .type = Fwog::UploadType::UBYTE,
-                                 .pixels = data });
+  auto bg_vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/FullScreenTri.vert.glsl"));
+  auto bg_fs = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile("assets/shaders/Texture.frag.glsl"));
+  _resources->backgroundPipeline = Fwog::CompileGraphicsPipeline({ .vertexShader = &bg_vs, .fragmentShader = &bg_fs});
 
-  stbi_image_free(data);
-
-  auto vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/FullScreenTri.vert.glsl"));
-  auto fs = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile("assets/shaders/Texture.frag.glsl"));
-  _resources->testPipe = Fwog::CompileGraphicsPipeline({ .vertexShader = &vs,
-                                                         .fragmentShader = &fs});
+  auto quadBatched_vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/QuadBatched.vert.glsl"));
+  auto quadBatched_fs = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile("assets/shaders/QuadBatched.frag.glsl"));
+  _resources->quadBatchedPipeline = Fwog::CompileGraphicsPipeline({ 
+    .vertexShader = &quadBatched_vs, 
+    .fragmentShader = &quadBatched_fs,
+    .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::TRIANGLE_FAN} });
 }
 
 Renderer::~Renderer()
@@ -149,13 +147,93 @@ Renderer::~Renderer()
   delete _resources;
 }
 
-void Renderer::DrawBackground()
+void Renderer::DrawBackground(const Fwog::Texture& texture)
 {
+  G_ASSERT(texture.CreateInfo().imageType == Fwog::ImageType::TEX_2D);
   Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720}}},
                                   .clearColorOnLoad = true,
                                   .clearColorValue = {.f = {.3f, .8f, .2f, 1.f}} });
-  Fwog::Cmd::BindGraphicsPipeline(_resources->testPipe);
-  Fwog::Cmd::BindSampledImage(0, _resources->testTex, Fwog::Sampler(Fwog::SamplerState{}));
+  Fwog::Cmd::BindGraphicsPipeline(_resources->backgroundPipeline);
+  Fwog::Cmd::BindSampledImage(0, texture, Fwog::Sampler(Fwog::SamplerState{}));
   Fwog::Cmd::Draw(3, 1, 0, 0);
+  Fwog::EndRendering();
+}
+
+void Renderer::DrawSprites(std::vector<RenderableSprite> sprites)
+{
+  if (sprites.empty())
+  {
+    return;
+
+  }
+  auto view = glm::mat4(1);
+  auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
+  auto cameraUniformBuffer = Fwog::Buffer(proj * view);
+
+  // sort sprites by texture
+  std::sort(std::execution::par,
+    sprites.begin(),
+    sprites.end(),
+    [](const RenderableSprite& lhs, const RenderableSprite& rhs)
+    {
+      return lhs.texture < rhs.texture;
+    });
+
+  Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720} } } });
+  Fwog::Cmd::BindGraphicsPipeline(_resources->quadBatchedPipeline);
+
+  struct SpriteUniforms
+  {
+    glm::mat3x2 transform;
+    uint32_t spriteIndex;
+    glm::u8vec4 tint4x8;
+  };
+
+  std::vector<SpriteUniforms> spritesUniforms;
+
+  spritesUniforms.resize(sprites.size());
+  std::transform(std::execution::par,
+    sprites.begin(),
+    sprites.end(),
+    spritesUniforms.begin(),
+    [](const RenderableSprite& sprite)
+    {
+      SpriteUniforms spriteUniforms
+      {
+        .transform = sprite.transform,
+        .spriteIndex = sprite.spriteIndex,
+        .tint4x8 = sprite.tint
+      };
+      return spriteUniforms;
+    });
+
+  // TODO: move this somewhere better
+  static auto uniformBuffer = Fwog::Buffer(std::span(spritesUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+  if (uniformBuffer.Size() < spritesUniforms.size() * sizeof(SpriteUniforms))
+  {
+    uniformBuffer = Fwog::Buffer(std::span(spritesUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
+  }
+  else
+  {
+    uniformBuffer.SubData(std::span(spritesUniforms), 0);
+  }
+
+  Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
+  Fwog::Cmd::BindStorageBuffer(0, uniformBuffer, 0, uniformBuffer.Size());
+
+  size_t firstInstance = 0;
+  for (size_t i = 0; i < sprites.size(); i++)
+  {
+    const auto& sprite = sprites[i];
+
+    // trigger draw if last sprite or if next sprite has a different texture
+    if (i == sprites.size() - 1 || sprite.texture != sprites[i + 1].texture)
+    {
+      Fwog::Cmd::BindSampledImage(0, *sprite.texture, Fwog::Sampler(Fwog::SamplerState{}));
+      Fwog::Cmd::Draw(4, static_cast<uint32_t>(i + 1 - firstInstance), 0, static_cast<uint32_t>(firstInstance));
+
+      firstInstance = i + 1;
+    }
+  }
   Fwog::EndRendering();
 }

@@ -9,12 +9,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(galunga_source_files
 	src/main.cpp
 	src/Renderer.cpp
-	src/Application.cpp)
+	src/Application.cpp "src/TextureManager.cpp" "src/utils/LoadFile.cpp")
 
 set(galunga_header_files
 	include/Renderer.h
 	include/Application.h
-)
+  "include/TextureManager.h" "include/utils/LoadFile.h" "include/Exception.h" "include/Gassert.h")
 
 add_executable(galunga ${galunga_source_files} ${galunga_header_files})
 
@@ -70,7 +70,7 @@ endif()
 add_subdirectory(external)
 
 target_include_directories(galunga PRIVATE ${enet_SOURCE_DIR}/include) # dumb hack
-target_link_libraries(galunga fwog glfw lib_glad EnTT::EnTT stb)
+target_link_libraries(galunga fwog glm glfw lib_glad EnTT::EnTT stb)
 
 add_custom_target(copy_assets ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/data/assets ${CMAKE_CURRENT_BINARY_DIR}/assets)
 add_dependencies(galunga copy_assets)

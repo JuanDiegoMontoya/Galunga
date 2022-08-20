@@ -1,9 +1,18 @@
 #include "Application.h"
 #include "Renderer.h"
+#include <Fwog/Texture.h>
 #include <GLFW/glfw3.h>
 #include <utility>
 #include <stdexcept>
 #include <string>
+
+// temporary includes
+#include <iostream>
+#include <stb_image.h>
+#include <vector>
+#include "TextureManager.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
 
 Application::Application(std::string title)
   : _title(std::move(title))
@@ -58,8 +67,77 @@ Application::~Application()
 
 void Application::Run()
 {
+  int x{};
+  int y{};
+  int nc{};
+  stbi_set_flip_vertically_on_load(true);
+  auto* pixels = stbi_load("assets/textures/test.png", &x, &y, &nc, 4);
+
+  auto bgTex = Fwog::CreateTexture2D({ static_cast<uint32_t>(x), static_cast<uint32_t>(y) }, Fwog::Format::R8G8B8A8_SRGB);
+  bgTex.SubImage({ .dimension = Fwog::UploadDimension::TWO,
+                                 .size = bgTex.Extent(),
+                                 .format = Fwog::UploadFormat::RGBA,
+                                 .type = Fwog::UploadType::UBYTE,
+                                 .pixels = pixels });
+
+  stbi_image_free(pixels);
+
+  auto textureManager32 = ArrayTextureManager({ 32, 32 }, 100, Fwog::Format::R8G8B8A8_SRGB);
+  auto trollge = textureManager32.LoadFromFile("trollge", "assets/textures/test.png");
+  auto orang = textureManager32.LoadFromFile("orang", "assets/textures/test2.png");
+
+  auto textureManager64 = ArrayTextureManager({ 64, 64 }, 100, Fwog::Format::R8G8B8A8_SRGB);
+  auto froge = textureManager64.LoadFromFile("orang", "assets/textures/frog_pink.png");
+
+  std::vector<RenderableSprite> sprites;
+
+  for (int xx = -50; xx < 50; xx++)
+  for (int yy = -50; yy < 50; yy++)
+  {
+    RenderableSprite rs{};
+    rs.transform = glm::mat3x2(1);
+    rs.transform[0][0] = .25f;
+    rs.transform[1][1] = .25f;
+    rs.transform[2] = glm::vec2(xx, yy) / 2.f;
+    if (yy % 3 == 0)
+    {
+      rs.texture = trollge.arrayTexture;
+      rs.spriteIndex = trollge.layer;
+    }
+    else if (yy % 3 == 1)
+    {
+      rs.texture = orang.arrayTexture;
+      rs.spriteIndex = orang.layer;
+    }
+    else
+    {
+      rs.texture = froge.arrayTexture;
+      rs.spriteIndex = froge.layer;
+    }
+    rs.tint = glm::u8vec4(255, 255, 255, 255);
+    sprites.push_back(rs);
+  }
+
+  double tempAccum = 0;
+  double prevTime = glfwGetTime();
   while (!glfwWindowShouldClose(_window))
   {
+    double curTime = glfwGetTime();
+    double dt = curTime - prevTime;
+    prevTime = curTime;
+
+    tempAccum += dt;
+    while (tempAccum > 1.0)
+    {
+      std::cout << "FPS: " << 1.0 / dt << '\n';
+      tempAccum -= 1.0;
+    }
+
+    for (auto& sprite : sprites)
+    {
+      sprite.transform[2][0] += .5f * (float)dt;
+    }
+
     glfwPollEvents();
 
     if (glfwGetKey(_window, GLFW_KEY_ESCAPE))
@@ -67,7 +145,8 @@ void Application::Run()
       glfwSetWindowShouldClose(_window, true);
     }
 
-    _renderer->DrawBackground();
+    _renderer->DrawBackground(bgTex);
+    _renderer->DrawSprites(sprites);
 
     glfwSwapBuffers(_window);
   }

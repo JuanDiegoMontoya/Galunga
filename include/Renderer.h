@@ -1,7 +1,22 @@
-#pragma
+#pragma once
 #include <string_view>
+#include <vector>
+#include <glm/mat3x2.hpp>
+#include <glm/vec4.hpp>
 
 struct GLFWwindow;
+namespace Fwog
+{
+  class Texture;
+}
+
+struct RenderableSprite
+{
+  glm::mat3x2 transform;
+  const Fwog::Texture* texture;
+  uint32_t spriteIndex;
+  glm::u8vec4 tint;
+};
 
 class Renderer
 {
@@ -14,7 +29,8 @@ public:
   Renderer& operator=(const Renderer&) = delete;
   Renderer& operator=(Renderer&&) = delete;
 
-  void DrawBackground();
+  void DrawBackground(const Fwog::Texture& texture);
+  void DrawSprites(std::vector<RenderableSprite> sprites);
 
   struct Resources;
 
