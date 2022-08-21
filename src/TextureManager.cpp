@@ -1,6 +1,5 @@
 #include "TextureManager.h"
 #include "Exception.h"
-#include "Assert.h"
 #include "utils/LoadFile.h"
 #include <stb_image.h>
 
