@@ -81,6 +81,18 @@ static void GLAPIENTRY glErrorCallback(
 }
 #endif
 
+struct SpriteUniforms
+{
+  glm::mat3x2 transform;
+  uint32_t spriteIndex;
+  glm::u8vec4 tint4x8;
+};
+
+struct FrameUniforms
+{
+  glm::mat4 viewProj;
+};
+
 struct Renderer::Resources
 {
   // resources that need to be recreated when the window resizes
@@ -98,6 +110,8 @@ struct Renderer::Resources
   Frame frame;
   Fwog::GraphicsPipeline backgroundPipeline;
   Fwog::GraphicsPipeline quadBatchedPipeline;
+  Fwog::TypedBuffer<SpriteUniforms> spritesUniformsBuffer;
+  Fwog::TypedBuffer<FrameUniforms> frameUniformsBuffer;
 };
 
 Renderer::Renderer(GLFWwindow* window)
@@ -123,11 +137,14 @@ Renderer::Renderer(GLFWwindow* window)
   uint32_t framebufferWidth = static_cast<uint32_t>(iframebufferWidth);
   uint32_t framebufferHeight = static_cast<uint32_t>(iframebufferHeight);
 
+  //static auto uniformBuffer = Fwog::Buffer(std::span(spritesUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
   _resources = new Resources(
     {
-      .frame = { .width = framebufferWidth,
+      .frame = {.width = framebufferWidth,
                  .height = framebufferHeight,
                  .output_ldr = Fwog::CreateTexture2D({framebufferWidth, framebufferHeight}, Fwog::Format::R8G8B8A8_SRGB) },
+      .spritesUniformsBuffer = Fwog::TypedBuffer<SpriteUniforms>(1024, Fwog::BufferStorageFlag::DYNAMIC_STORAGE),
+      .frameUniformsBuffer = Fwog::TypedBuffer<FrameUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE)
     });
 
   auto bg_vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/FullScreenTri.vert.glsl"));
@@ -179,16 +196,6 @@ void Renderer::DrawSprites(std::vector<RenderableSprite> sprites)
       return lhs.texture < rhs.texture;
     });
 
-  Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720} } } });
-  Fwog::Cmd::BindGraphicsPipeline(_resources->quadBatchedPipeline);
-
-  struct SpriteUniforms
-  {
-    glm::mat3x2 transform;
-    uint32_t spriteIndex;
-    glm::u8vec4 tint4x8;
-  };
-
   std::vector<SpriteUniforms> spritesUniforms;
 
   spritesUniforms.resize(sprites.size());
@@ -207,19 +214,18 @@ void Renderer::DrawSprites(std::vector<RenderableSprite> sprites)
       return spriteUniforms;
     });
 
-  // TODO: move this somewhere better
-  static auto uniformBuffer = Fwog::Buffer(std::span(spritesUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-  if (uniformBuffer.Size() < spritesUniforms.size() * sizeof(SpriteUniforms))
+  // geometric expansion so we don't spam buffers
+  if (_resources->spritesUniformsBuffer.Size() < spritesUniforms.size() * sizeof(SpriteUniforms))
   {
-    uniformBuffer = Fwog::Buffer(std::span(spritesUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
-  }
-  else
-  {
-    uniformBuffer.SubData(std::span(spritesUniforms), 0);
+    _resources->spritesUniformsBuffer = Fwog::TypedBuffer<SpriteUniforms>(spritesUniforms.size() * 2, Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
   }
 
+  _resources->spritesUniformsBuffer.SubData(std::span(spritesUniforms), 0);
+
+  Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720} } } });
+  Fwog::Cmd::BindGraphicsPipeline(_resources->quadBatchedPipeline);
   Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
-  Fwog::Cmd::BindStorageBuffer(0, uniformBuffer, 0, uniformBuffer.Size());
+  Fwog::Cmd::BindStorageBuffer(0, _resources->spritesUniformsBuffer, 0, _resources->spritesUniformsBuffer.Size());
 
   size_t firstInstance = 0;
   for (size_t i = 0; i < sprites.size(); i++)
