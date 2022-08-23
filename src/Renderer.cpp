@@ -141,8 +141,8 @@ Renderer::Renderer(GLFWwindow* window)
   _resources = new Resources(
     {
       .frame = {.width = framebufferWidth,
-                 .height = framebufferHeight,
-                 .output_ldr = Fwog::CreateTexture2D({framebufferWidth, framebufferHeight}, Fwog::Format::R8G8B8A8_SRGB) },
+                .height = framebufferHeight,
+                .output_ldr = Fwog::CreateTexture2D({framebufferWidth, framebufferHeight}, Fwog::Format::R8G8B8A8_SRGB) },
       .spritesUniformsBuffer = Fwog::TypedBuffer<SpriteUniforms>(1024, Fwog::BufferStorageFlag::DYNAMIC_STORAGE),
       .frameUniformsBuffer = Fwog::TypedBuffer<FrameUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE)
     });
@@ -181,7 +181,6 @@ void Renderer::DrawSprites(std::vector<RenderableSprite> sprites)
   if (sprites.empty())
   {
     return;
-
   }
   auto view = glm::mat4(1);
   auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);

@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "Renderer.h"
+#include "utils/EventBus.h"
 #include <Fwog/Texture.h>
 #include <GLFW/glfw3.h>
 #include <utility>
@@ -14,8 +15,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 
-Application::Application(std::string title)
-  : _title(std::move(title))
+Application::Application(std::string title, EventBus* eventBus)
+  : _title(std::move(title)),
+    _eventBus(eventBus)
 {
   // init everything
   if (!glfwInit())
@@ -63,6 +65,7 @@ Application::Application(std::string title)
 Application::~Application()
 {
   delete _renderer;
+  glfwTerminate();
 }
 
 void Application::Run()
@@ -75,10 +78,10 @@ void Application::Run()
 
   auto bgTex = Fwog::CreateTexture2D({ static_cast<uint32_t>(x), static_cast<uint32_t>(y) }, Fwog::Format::R8G8B8A8_SRGB);
   bgTex.SubImage({ .dimension = Fwog::UploadDimension::TWO,
-                                 .size = bgTex.Extent(),
-                                 .format = Fwog::UploadFormat::RGBA,
-                                 .type = Fwog::UploadType::UBYTE,
-                                 .pixels = pixels });
+                   .size = bgTex.Extent(),
+                   .format = Fwog::UploadFormat::RGBA,
+                   .type = Fwog::UploadType::UBYTE,
+                   .pixels = pixels });
 
   stbi_image_free(pixels);
 

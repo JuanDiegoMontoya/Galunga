@@ -7,14 +7,20 @@ project(Galunga)
 set(CMAKE_CXX_STANDARD 20)
 
 set(galunga_source_files
-	src/main.cpp
-	src/Renderer.cpp
-	src/Application.cpp "src/TextureManager.cpp" "src/utils/LoadFile.cpp")
+	"src/main.cpp"
+	"src/Renderer.cpp"
+	"src/Application.cpp" 
+	"src/TextureManager.cpp" 
+	"src/utils/LoadFile.cpp")
 
 set(galunga_header_files
-	include/Renderer.h
-	include/Application.h
-  "include/TextureManager.h" "include/utils/LoadFile.h" "include/Exception.h" "include/Gassert.h")
+	"include/Renderer.h"
+	"include/Application.h"
+	"include/TextureManager.h" 
+	"include/utils/LoadFile.h" 
+	"include/Exception.h" 
+	"include/Gassert.h"  
+	"include/utils/EventBus.h")
 
 add_executable(galunga ${galunga_source_files} ${galunga_header_files})
 
