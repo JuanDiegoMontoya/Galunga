@@ -14,18 +14,19 @@ set(galunga_source_files
 	"src/utils/LoadFile.cpp")
 
 set(galunga_header_files
-	"include/Renderer.h"
-	"include/Application.h"
-	"include/TextureManager.h" 
-	"include/utils/LoadFile.h" 
-	"include/Exception.h" 
-	"include/Gassert.h"  
-	"include/utils/EventBus.h")
+	"src/Renderer.h"
+	"src/Application.h"
+	"src/TextureManager.h" 
+	"src/utils/LoadFile.h" 
+	"src/Exception.h" 
+	"src/Gassert.h"  
+	"src/net/client/GameClient.h"
+	"src/utils/EventBus.h")
 
 add_executable(galunga ${galunga_source_files} ${galunga_header_files})
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT galunga)
-target_include_directories(galunga PRIVATE include vendor)
+target_include_directories(galunga PRIVATE src vendor)
 
 find_package(OpenGL REQUIRED)
 
