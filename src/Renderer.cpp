@@ -137,7 +137,6 @@ Renderer::Renderer(GLFWwindow* window)
   uint32_t framebufferWidth = static_cast<uint32_t>(iframebufferWidth);
   uint32_t framebufferHeight = static_cast<uint32_t>(iframebufferHeight);
 
-  //static auto uniformBuffer = Fwog::Buffer(std::span(spritesUniforms), Fwog::BufferStorageFlag::DYNAMIC_STORAGE);
   _resources = new Resources(
     {
       .frame = {.width = framebufferWidth,
@@ -182,6 +181,7 @@ void Renderer::DrawSprites(std::vector<RenderableSprite> sprites)
   {
     return;
   }
+
   auto view = glm::mat4(1);
   auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
   auto cameraUniformBuffer = Fwog::Buffer(proj * view);

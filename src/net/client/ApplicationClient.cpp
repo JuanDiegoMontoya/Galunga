@@ -1,8 +1,18 @@
-#include "Application.h"
+#include "ApplicationClient.h"
 #include "Renderer.h"
 #include "utils/EventBus.h"
+#include "utils/Timer.h"
+#include "net/client/NetworkClient.h"
+#include "net/Address.h"
 #include <Fwog/Texture.h>
+
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <utility>
 #include <stdexcept>
 #include <string>
@@ -15,9 +25,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 
-Application::Application(std::string title, EventBus* eventBus)
+ApplicationClient::ApplicationClient(std::string title, EventBus* eventBus, Net::NetworkClient* networkClient)
   : _title(std::move(title)),
-    _eventBus(eventBus)
+    _eventBus(eventBus),
+    _networkClient(networkClient)
 {
   // init everything
   if (!glfwInit())
@@ -60,15 +71,24 @@ Application::Application(std::string title, EventBus* eventBus)
   glfwSwapInterval(1);
 
   _renderer = new Renderer(_window);
+
+  ImGui::CreateContext();
+  ImGui_ImplGlfw_InitForOpenGL(_window, true);
+  ImGui_ImplOpenGL3_Init("#version 450 core");
+  ImGui::StyleColorsDark();
 }
 
-Application::~Application()
+ApplicationClient::~ApplicationClient()
 {
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
+
   delete _renderer;
   glfwTerminate();
 }
 
-void Application::Run()
+void ApplicationClient::Run()
 {
   int x{};
   int y{};
@@ -122,17 +142,18 @@ void Application::Run()
   }
 
   double tempAccum = 0;
-  double prevTime = glfwGetTime();
+
+  Timer timer;
+  double simulationAccum = 0;
   while (!glfwWindowShouldClose(_window))
   {
-    double curTime = glfwGetTime();
-    double dt = curTime - prevTime;
-    prevTime = curTime;
+    double dt = timer.Elapsed_s();
+    timer.Reset();
 
     tempAccum += dt;
     while (tempAccum > 1.0)
     {
-      std::cout << "FPS: " << 1.0 / dt << '\n';
+      //std::cout << "FPS: " << 1.0 / dt << '\n';
       tempAccum -= 1.0;
     }
 
@@ -141,15 +162,71 @@ void Application::Run()
       sprite.transform[2][0] += .5f * (float)dt;
     }
 
-    glfwPollEvents();
+    simulationAccum += dt;
+    while (simulationAccum > _simulationTick)
+    {
+      glfwPollEvents();
+      _networkClient->Poll(_simulationTick);
+      simulationAccum -= _simulationTick;
+    }
 
     if (glfwGetKey(_window, GLFW_KEY_ESCAPE))
     {
       glfwSetWindowShouldClose(_window, true);
     }
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("hello");
+    static char buffer[512]{ "localhost" };
+    static int port = 1234;
+    ImGui::InputText("Server host", buffer, 512);
+    ImGui::InputInt("Server port", &port, 0, 0);
+
+    bool connected = _networkClient->IsConnected();
+    if (connected) ImGui::BeginDisabled();
+    if (ImGui::Button("Connect"))
+    {
+      try
+      {
+        _networkClient->ConnectToServer({ buffer, (uint16_t)port });
+      }
+      catch (std::exception& e)
+      {
+        printf("%s\n", e.what());
+      }
+    }
+    if (connected) ImGui::EndDisabled();
+
+    ImGui::SameLine();
+
+    if (!connected) ImGui::BeginDisabled();
+    if (ImGui::Button("Disconnect"))
+    {
+      _networkClient->Disconnect();
+    }
+    if (!connected) ImGui::EndDisabled();
+
+    static char message[512]{ "hello" };
+    ImGui::InputText("Message", message, 512);
+    if (ImGui::Button("Send"))
+    {
+      _networkClient->SendSimpleMessage(message);
+    }
+
+    ImGui::End();
+
     _renderer->DrawBackground(bgTex);
     _renderer->DrawSprites(sprites);
+
+    glDisable(GL_FRAMEBUFFER_SRGB);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui::EndFrame();
+    glEnable(GL_FRAMEBUFFER_SRGB);
 
     glfwSwapBuffers(_window);
   }

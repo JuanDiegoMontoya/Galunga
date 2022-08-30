@@ -63,7 +63,7 @@ FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)
     FetchContent_Populate(imgui)
 
-    add_library(lib_imgui
+    add_library(imgui
         ${imgui_SOURCE_DIR}/imgui.cpp
         ${imgui_SOURCE_DIR}/imgui_demo.cpp
         ${imgui_SOURCE_DIR}/imgui_draw.cpp
@@ -72,12 +72,12 @@ if(NOT imgui_POPULATED)
         ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp)
 
-    target_include_directories(lib_imgui PUBLIC 
+    target_include_directories(imgui PUBLIC 
         ${imgui_SOURCE_DIR} 
         ${imgui_SOURCE_DIR}/backends
         ${glfw_SOURCE_DIR}/include)
 
-    target_link_libraries(lib_imgui PRIVATE glfw)
+    target_link_libraries(imgui PRIVATE glfw)
 endif()
 
 # stb does not have a CMakelists.txt, so we need to add our own target
