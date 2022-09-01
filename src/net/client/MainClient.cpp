@@ -14,6 +14,6 @@ int main(int, const char* const*)
   auto client = Net::NetworkClient(&eventBus);
   auto app = ApplicationClient("Galunga", &eventBus, &client);
   app.Run();
-
+  
   return 0;
 }

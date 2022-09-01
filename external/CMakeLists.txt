@@ -1,10 +1,10 @@
 # external content definitions
 include(FetchContent)
 
-option(GLFW_BUILD_TESTS "" OFF)
-option(GLFW_BUILD_DOCS "" OFF)
-option(GLFW_INSTALL "" OFF)
-option(GLFW_BUILD_EXAMPLES "" OFF)
+set(GLFW_BUILD_TESTS false)
+set(GLFW_BUILD_DOCS false)
+set(GLFW_INSTALL false)
+set(GLFW_BUILD_EXAMPLES false)
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw
@@ -26,7 +26,7 @@ FetchContent_Declare(
     GIT_SHALLOW ON
 )
 
-option(FWOG_BUILD_EXAMPLES "" off)
+set(FWOG_BUILD_EXAMPLES false)
 FetchContent_Declare(
     fwog
     GIT_REPOSITORY https://github.com/JuanDiegoMontoya/Fwog.git
@@ -57,7 +57,20 @@ FetchContent_Declare(
     BUILD_COMMAND ""
 )
 
-FetchContent_MakeAvailable(glm glfw fwog EnTT enet)
+set(BUILD_DOC false)
+set(BUILD_SANDBOX false)
+set(SKIP_PERFORMANCE_COMPARISON true)
+set(BUILD_TESTS false)
+FetchContent_Declare(
+    cereal
+    GIT_REPOSITORY https://github.com/USCiLab/cereal.git
+    GIT_TAG        ddd467244713ea4fe63733628992efcdd6a9187d
+    GIT_SHALLOW ON
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+)
+
+FetchContent_MakeAvailable(glm glfw fwog EnTT enet cereal)
 
 FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)
