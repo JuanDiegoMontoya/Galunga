@@ -1,6 +1,6 @@
 #include "ApplicationServer.h"
 #include "utils/Timer.h"
-#include "net/server/NetworkServer.h"
+#include "server/net/NetworkServer.h"
 #include <utility>
 
 ApplicationServer::ApplicationServer(std::string title, EventBus* eventBus, Net::NetworkServer* networkServer)

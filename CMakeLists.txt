@@ -7,47 +7,47 @@ project(Galunga)
 set(CMAKE_CXX_STANDARD 20)
 
 set(galunga_shared_source_files
-	"src/GAssert.cpp"
-	"src/utils/LoadFile.cpp"
-	"src/Platform.cpp"
+	"src/shared/GAssert.cpp"
+	"src/shared/utils/LoadFile.cpp"
+	"src/shared/Platform.cpp"
 )
 
 set(galunga_shared_header_files
-	"src/Platform.h"
-	"src/GAssert.h"
-	"src/Exception.h" 
-	"src/utils/EventBus.h"
-	"src/utils/LoadFile.h" 
-	"src/utils/Timer.h" 
-	"src/net/Address.h" 
-	"src/net/NetEvents.h"
-	"src/net/Player.h"
+	"src/shared/Platform.h"
+	"src/shared/GAssert.h"
+	"src/shared/Exception.h" 
+	"src/shared/utils/EventBus.h"
+	"src/shared/utils/LoadFile.h" 
+	"src/shared/utils/Timer.h" 
+	"src/shared/net/Address.h" 
+	"src/shared/net/NetEvents.h"
+	"src/shared/net/Player.h"
 )
 
 set(galunga_client_source_files
-	"src/TextureManager.cpp" 
-	"src/Renderer.cpp"
-	"src/net/client/MainClient.cpp"
-	"src/net/client/ApplicationClient.cpp" 
-	"src/net/client/NetworkClient.cpp"
+	"src/client/TextureManager.cpp" 
+	"src/client/Renderer.cpp"
+	"src/client/MainClient.cpp"
+	"src/client/ApplicationClient.cpp" 
+	"src/client/net/NetworkClient.cpp"
 )
 
 set(galunga_client_header_files
-	"src/TextureManager.h" 
-	"src/Renderer.h"
-	"src/net/client/ApplicationClient.h"
-	"src/net/client/NetworkClient.h"
+	"src/client/TextureManager.h" 
+	"src/client/Renderer.h"
+	"src/client/ApplicationClient.h"
+	"src/client/net/NetworkClient.h"
 )
 
 set(galunga_server_source_files
-	"src/net/server/MainServer.cpp"
-	"src/net/server/NetworkServer.cpp"
-	"src/net/server/ApplicationServer.cpp"
+	"src/server/MainServer.cpp"
+	"src/server/net/NetworkServer.cpp"
+	"src/server/ApplicationServer.cpp"
 )
 
 set(galunga_server_header_files
-	"src/net/server/NetworkServer.h"
-	"src/net/server/ApplicationServer.h"
+	"src/server/net/NetworkServer.h"
+	"src/server/ApplicationServer.h"
 )
 
 add_executable(galunga_client
@@ -106,6 +106,7 @@ add_subdirectory(external)
 
 target_include_directories(galunga_common PUBLIC
 	src
+	src/shared
 	vendor
 	${enet_SOURCE_DIR}/include # dumb hack
 )

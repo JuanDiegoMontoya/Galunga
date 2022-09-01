@@ -1,5 +1,5 @@
-#include "net/client/ApplicationClient.h"
-#include "net/client/NetworkClient.h"
+#include "client/ApplicationClient.h"
+#include "client/net/NetworkClient.h"
 #include "utils/EventBus.h"
 
 #define STB_IMAGE_IMPLEMENTATION

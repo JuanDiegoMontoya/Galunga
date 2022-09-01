@@ -2,7 +2,7 @@
 #include "Renderer.h"
 #include "utils/EventBus.h"
 #include "utils/Timer.h"
-#include "net/client/NetworkClient.h"
+#include "client/net/NetworkClient.h"
 #include "net/Address.h"
 #include <Fwog/Texture.h>
 

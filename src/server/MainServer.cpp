@@ -1,5 +1,5 @@
-#include "net/server/ApplicationServer.h"
-#include "net/server/NetworkServer.h"
+#include "server/ApplicationServer.h"
+#include "server/net/NetworkServer.h"
 #include "utils/EventBus.h"
 
 #define ENET_IMPLEMENTATION

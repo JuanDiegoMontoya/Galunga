@@ -1,4 +1,4 @@
-#include "net/client/NetworkClient.h"
+#include "client/net/NetworkClient.h"
 #include "net/Address.h"
 #include "net/NetEvents.h"
 #include "GAssert.h"
