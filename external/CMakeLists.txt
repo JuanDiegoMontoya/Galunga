@@ -66,8 +66,6 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/USCiLab/cereal.git
     GIT_TAG        ddd467244713ea4fe63733628992efcdd6a9187d
     GIT_SHALLOW ON
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
 )
 
 FetchContent_MakeAvailable(glm glfw fwog EnTT enet cereal)

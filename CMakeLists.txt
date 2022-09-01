@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(galunga_shared_source_files
 	"src/GAssert.cpp"
 	"src/utils/LoadFile.cpp"
+	"src/Platform.cpp"
 )
 
 set(galunga_shared_header_files
@@ -110,7 +111,7 @@ target_include_directories(galunga_common PUBLIC
 )
 
 target_link_libraries(galunga_client fwog glm glfw lib_glad EnTT::EnTT stb galunga_common imgui cereal)
-target_link_libraries(galunga_server glm EnTT::EnTT galunga_common)
+target_link_libraries(galunga_server glm EnTT::EnTT galunga_common cereal)
 
 add_custom_target(copy_assets ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/data/assets ${CMAKE_CURRENT_BINARY_DIR}/assets)
 add_dependencies(galunga_client copy_assets)
