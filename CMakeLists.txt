@@ -30,6 +30,7 @@ set(galunga_client_source_files
 	"src/client/MainClient.cpp"
 	"src/client/ApplicationClient.cpp" 
 	"src/client/net/NetworkClient.cpp"
+	"src/client/Input.cpp"
 )
 
 set(galunga_client_header_files
@@ -37,6 +38,7 @@ set(galunga_client_header_files
 	"src/client/Renderer.h"
 	"src/client/ApplicationClient.h"
 	"src/client/net/NetworkClient.h"
+	"src/client/Input.h"
 )
 
 set(galunga_server_source_files

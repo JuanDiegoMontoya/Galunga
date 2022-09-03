@@ -19,12 +19,12 @@ private:
   {
   public:
     virtual ~EventDispatcher() = default;
-    inline void Dispatch(Event& e) const
+    void Dispatch(Event& e) const
     {
       InvokeHandler(e);
     }
 
-  private:
+  protected:
     virtual void InvokeHandler(Event& e) const = 0;
   };
 
