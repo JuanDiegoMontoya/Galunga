@@ -51,7 +51,10 @@ private:
       }
     }
 
-    bool operator==(const EventHandler& rhs) const noexcept = default;
+    bool operator==(const EventHandler& rhs) const noexcept
+    {
+      return m_Receiver == rhs.m_Receiver && m_HandlerFn == rhs.m_HandlerFn;
+    }
 
     bool operator==(const Receiver* rhs) const
     {
@@ -107,12 +110,12 @@ public:
     auto entry = m_Subscriptions.find(typeid(EventType));
     if (entry != m_Subscriptions.end())
     {
-      const EventHandler<Receiver, EventType> tmp = { receiver, handlerFn };
+      const EventHandler<Receiver, EventType> tmp = { receiver, handlerFn, nullptr };
       HandlerList& handlers = entry->second;
       std::erase_if(handlers, [&](const auto& handler)
         {
           using T = EventHandler<Receiver, EventType>;
-          return *static_cast<T*>(handler.get()) == tmp;
+          return static_cast<T&>(*handler) == tmp;
         });
     }
   }
@@ -126,7 +129,7 @@ public:
       std::erase_if(handlers, [&](const auto& handler)
         {
           using T = EventHandler<Receiver, Event>;
-          return *static_cast<T*>(handler.get()) == receiver;
+          return static_cast<T&>(*handler) == receiver;
         });
     }
   }
