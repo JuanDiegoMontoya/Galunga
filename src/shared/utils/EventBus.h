@@ -5,6 +5,8 @@
 #include <vector>
 #include <memory>
 #include <typeindex>
+#include <functional>
+#include <utility>
 
 class EventBus
 {
@@ -32,21 +34,24 @@ private:
   {
   public:
     using HandlerFn = void(Receiver::*)(EventType&);
+    using PredicateFn = std::function<bool(const EventType&)>;
 
-    EventHandler(Receiver* receiver, HandlerFn handlerFn)
-      : m_Receiver(receiver), m_HandlerFn(handlerFn)
+    EventHandler(Receiver* receiver, HandlerFn handlerFn, PredicateFn predicateFn)
+      : m_Receiver(receiver), 
+        m_HandlerFn(handlerFn), 
+        m_PredicateFn(std::move(predicateFn))
     {
     }
 
     void InvokeHandler(Event& e) const override
     {
-      (m_Receiver->*m_HandlerFn)(static_cast<EventType&>(e));
+      if (!m_PredicateFn || m_PredicateFn(static_cast<EventType&>(e)))
+      {
+        (m_Receiver->*m_HandlerFn)(static_cast<EventType&>(e));
+      }
     }
 
-    bool operator==(const EventHandler& rhs) const
-    {
-      return (m_Receiver == rhs.m_Receiver) && (m_HandlerFn == rhs.m_HandlerFn);
-    }
+    bool operator==(const EventHandler& rhs) const noexcept = default;
 
     bool operator==(const Receiver* rhs) const
     {
@@ -56,6 +61,7 @@ private:
   private:
     Receiver* m_Receiver;
     HandlerFn m_HandlerFn;
+    PredicateFn m_PredicateFn;
   };
 
 public:
@@ -84,7 +90,14 @@ public:
   void Subscribe(Receiver* receiver, void(Receiver::* handlerFn)(EventType&))
   {
     HandlerList& handlers = m_Subscriptions[typeid(EventType)];
-    handlers.emplace_back(std::make_unique<EventHandler<Receiver, EventType>>(receiver, handlerFn));
+    handlers.emplace_back(std::make_unique<EventHandler<Receiver, EventType>>(receiver, handlerFn, nullptr));
+  }
+
+  template<typename Receiver, typename EventType, typename Fn>
+  void Subscribe(Receiver* receiver, void(Receiver::* handlerFn)(EventType&), Fn&& predicateFn)
+  {
+    HandlerList& handlers = m_Subscriptions[typeid(EventType)];
+    handlers.emplace_back(std::make_unique<EventHandler<Receiver, EventType>>(receiver, handlerFn, std::forward<Fn>(predicateFn)));
   }
 
   // unsubscribes a receiver from a single event
@@ -119,5 +132,6 @@ public:
   }
 
 private:
+  // potential optimization: https://mc-deltat.github.io/articles/stateful-metaprogramming-cpp20
   std::unordered_map<std::type_index, HandlerList> m_Subscriptions;
 };
