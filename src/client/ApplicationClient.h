@@ -10,6 +10,11 @@ namespace Net
   class NetworkClient;
 }
 
+namespace Input
+{
+  class InputManager;
+}
+
 class ApplicationClient
 {
 public:
@@ -30,5 +35,6 @@ private:
   Net::NetworkClient* _networkClient;
   GLFWwindow* _window;
   Renderer* _renderer;
+  Input::InputManager* _input;
   double _simulationTick = 1.0 / 60.0;
 };

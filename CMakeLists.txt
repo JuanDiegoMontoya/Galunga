@@ -10,6 +10,8 @@ set(galunga_shared_source_files
 	"src/shared/GAssert.cpp"
 	"src/shared/utils/LoadFile.cpp"
 	"src/shared/Platform.cpp"
+	 "src/shared/ecs/Entity.cpp" 
+	 "src/shared/ecs/Scene.cpp"
 )
 
 set(galunga_shared_header_files
@@ -22,6 +24,11 @@ set(galunga_shared_header_files
 	"src/shared/net/Address.h" 
 	"src/shared/net/NetEvents.h"
 	"src/shared/net/Player.h"
+	"src/shared/ecs/Entity.h"
+	"src/shared/ecs/Scene.h"
+	"src/shared/ecs/components/Lifetime.h"
+	"src/shared/ecs/components/Delete.h"
+	"src/shared/ecs/components/Tag.h"
 )
 
 set(galunga_client_source_files
@@ -75,6 +82,7 @@ else()
     set(COMPILER_CLANGPP 0)
 endif()
 
+# enable roughly equivalent (and strict!) compiler warnings depending on the compiler
 target_compile_options(galunga_common PUBLIC
 	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>,${COMPILER_CLANGPP}>:
 	-Wall
@@ -84,10 +92,10 @@ target_compile_options(galunga_common PUBLIC
 	-Wno-unused-result
 	>
 	$<$<CXX_COMPILER_ID:MSVC>:
-	/W4
-	/WX
-	/permissive-
-	/wd4324 # structure was padded
+	-W4
+	-WX
+	-permissive-
+	-wd4324 # disable warning indicating that a structure was padded
 	>
 )
 
@@ -97,11 +105,7 @@ find_package(OpenGL REQUIRED)
 
 # enable asan for debug builds
 if (DEBUG)
-    if (WIN32)
-        target_compile_options(galunga_common PUBLIC /fsanitize=address)
-    else()
-        target_compile_options(galunga_common PUBLIC -fsanitize=address)
-    endif()
+    target_compile_options(galunga_common PUBLIC -fsanitize=address)
 endif()
 
 add_subdirectory(external)
@@ -113,8 +117,9 @@ target_include_directories(galunga_common PUBLIC
 	${enet_SOURCE_DIR}/include # dumb hack
 )
 
-target_link_libraries(galunga_client fwog glm glfw lib_glad EnTT::EnTT stb galunga_common imgui cereal)
-target_link_libraries(galunga_server glm EnTT::EnTT galunga_common cereal)
+target_link_libraries(galunga_common PUBLIC glm EnTT::EnTT cereal)
+target_link_libraries(galunga_client fwog  glfw lib_glad imgui stb galunga_common)
+target_link_libraries(galunga_server galunga_common)
 
 add_custom_target(copy_assets ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/data/assets ${CMAKE_CURRENT_BINARY_DIR}/assets)
 add_dependencies(galunga_client copy_assets)

@@ -186,6 +186,11 @@ namespace Input
   public:
     InputManager(GLFWwindow* window, EventBus* eventBus);
 
+    InputManager(const InputManager&) = delete;
+    InputManager(InputManager&&) = delete;
+    InputManager& operator=(const InputManager&) = delete;
+    InputManager& operator=(InputManager&&) = delete;
+
     void PollEvents(double dt);
 
     template<class T>

@@ -7,7 +7,7 @@ class Timer
   using microsecond_t = std::chrono::duration<double, std::ratio<1'000'000>>;
   using millisecond_t = std::chrono::duration<double, std::ratio<1'000>>;
   using second_t = std::chrono::duration<double, std::ratio<1>>;
-  using myclock_t = std::chrono::high_resolution_clock;
+  using myclock_t = std::chrono::steady_clock;
   using timepoint_t = std::chrono::time_point<myclock_t>;
 public:
   Timer()

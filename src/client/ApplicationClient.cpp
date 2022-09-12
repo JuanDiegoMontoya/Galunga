@@ -1,5 +1,6 @@
 #include "ApplicationClient.h"
 #include "Renderer.h"
+#include "Input.h"
 #include "utils/EventBus.h"
 #include "utils/Timer.h"
 #include "client/net/NetworkClient.h"
@@ -72,8 +73,10 @@ ApplicationClient::ApplicationClient(std::string title, EventBus* eventBus, Net:
 
   _renderer = new Renderer(_window);
 
+  _input = new Input::InputManager(_window, _eventBus);
+
   ImGui::CreateContext();
-  ImGui_ImplGlfw_InitForOpenGL(_window, true);
+  ImGui_ImplGlfw_InitForOpenGL(_window, false);
   ImGui_ImplOpenGL3_Init("#version 450 core");
   ImGui::StyleColorsDark();
 }
@@ -84,6 +87,7 @@ ApplicationClient::~ApplicationClient()
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 
+  delete _input;
   delete _renderer;
   glfwTerminate();
 }
@@ -165,7 +169,7 @@ void ApplicationClient::Run()
     simulationAccum += dt;
     while (simulationAccum > _simulationTick)
     {
-      glfwPollEvents();
+      _input->PollEvents(_simulationTick);
       _networkClient->Poll(_simulationTick);
       simulationAccum -= _simulationTick;
     }

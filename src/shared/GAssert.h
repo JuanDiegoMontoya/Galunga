@@ -4,8 +4,10 @@
 
 #ifndef NDEBUG
 #define G_ASSERT(x) assert(x)
+#define G_ASSERT_MSG(x, msg) assert(x)
 #else
-#define G_ASSERT(x) (void)(x)
+#define G_ASSERT(x)
+#define G_ASSERT_MSG(x, msg)
 #endif
 
 //namespace g
