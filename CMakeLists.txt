@@ -10,8 +10,10 @@ set(galunga_shared_source_files
 	"src/shared/GAssert.cpp"
 	"src/shared/utils/LoadFile.cpp"
 	"src/shared/Platform.cpp"
-	 "src/shared/ecs/Entity.cpp" 
-	 "src/shared/ecs/Scene.cpp"
+	"src/shared/ecs/Entity.cpp" 
+	"src/shared/ecs/Scene.cpp"
+	"src/shared/ecs/systems/System.cpp"
+	"src/shared/ecs/systems/core/LifetimeSystem.cpp"
 )
 
 set(galunga_shared_header_files
@@ -26,9 +28,13 @@ set(galunga_shared_header_files
 	"src/shared/net/Player.h"
 	"src/shared/ecs/Entity.h"
 	"src/shared/ecs/Scene.h"
-	"src/shared/ecs/components/Lifetime.h"
-	"src/shared/ecs/components/Delete.h"
-	"src/shared/ecs/components/Tag.h"
+	"src/shared/ecs/components/core/Lifetime.h"
+	"src/shared/ecs/components/core/Tag.h"
+	"src/shared/ecs/systems/core/LifetimeSystem.h"
+	"src/shared/ecs/systems/System.h"
+	"src/shared/ecs/components/core/Transform.h"
+	"src/shared/ecs/components/core/Sprite.h"
+	"src/shared/ecs/events/AddSprite.h"
 )
 
 set(galunga_client_source_files
@@ -38,6 +44,7 @@ set(galunga_client_source_files
 	"src/client/ApplicationClient.cpp" 
 	"src/client/net/NetworkClient.cpp"
 	"src/client/Input.cpp"
+	"src/client/ecs/systems/RenderingSystem.cpp"
 )
 
 set(galunga_client_header_files
@@ -46,6 +53,7 @@ set(galunga_client_header_files
 	"src/client/ApplicationClient.h"
 	"src/client/net/NetworkClient.h"
 	"src/client/Input.h"
+	"src/client/ecs/systems/RenderingSystem.h"
 )
 
 set(galunga_server_source_files

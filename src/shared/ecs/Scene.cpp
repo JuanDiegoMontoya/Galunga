@@ -1,6 +1,6 @@
 #include "Scene.h"
 #include <ecs/Entity.h>
-#include <ecs/components/Tag.h>
+#include <ecs/components/core/Tag.h>
 #include "utils/EventBus.h"
 #include <entt/entity/registry.hpp>
 

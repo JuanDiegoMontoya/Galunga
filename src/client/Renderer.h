@@ -5,6 +5,7 @@
 #include <glm/vec4.hpp>
 
 struct GLFWwindow;
+
 namespace Fwog
 {
   class Texture;

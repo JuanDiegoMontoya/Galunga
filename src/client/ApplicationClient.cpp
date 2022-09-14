@@ -5,6 +5,9 @@
 #include "utils/Timer.h"
 #include "client/net/NetworkClient.h"
 #include "net/Address.h"
+#include <ecs/systems/core/LifetimeSystem.h>
+#include <client/ecs/systems/RenderingSystem.h>
+#include <ecs/Scene.h>
 #include <Fwog/Texture.h>
 
 #include <glad/gl.h>
@@ -19,12 +22,9 @@
 #include <string>
 
 // temporary includes
-#include <iostream>
-#include <stb_image.h>
-#include <vector>
-#include "TextureManager.h"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/glm.hpp>
+#include <ecs/Entity.h>
+#include <ecs/components/core/Sprite.h>
+#include <ecs/components/core/Transform.h>
 
 ApplicationClient::ApplicationClient(std::string title, EventBus* eventBus, Net::NetworkClient* networkClient)
   : _title(std::move(title)),
@@ -71,8 +71,6 @@ ApplicationClient::ApplicationClient(std::string title, EventBus* eventBus, Net:
   glfwMakeContextCurrent(_window);
   glfwSwapInterval(1);
 
-  _renderer = new Renderer(_window);
-
   _input = new Input::InputManager(_window, _eventBus);
 
   ImGui::CreateContext();
@@ -88,64 +86,23 @@ ApplicationClient::~ApplicationClient()
   ImGui::DestroyContext();
 
   delete _input;
-  delete _renderer;
   glfwTerminate();
 }
 
 void ApplicationClient::Run()
 {
-  int x{};
-  int y{};
-  int nc{};
-  stbi_set_flip_vertically_on_load(true);
-  auto* pixels = stbi_load("assets/textures/test.png", &x, &y, &nc, 4);
+  auto scene = ecs::Scene(_eventBus);
+  auto lifetimeSystem = ecs::LifetimeSystem(&scene, _eventBus);
+  auto renderingSystem = client::ecs::RenderingSystem(&scene, _eventBus, _window);
 
-  auto bgTex = Fwog::CreateTexture2D({ static_cast<uint32_t>(x), static_cast<uint32_t>(y) }, Fwog::Format::R8G8B8A8_SRGB);
-  bgTex.SubImage({ .dimension = Fwog::UploadDimension::TWO,
-                   .size = bgTex.Extent(),
-                   .format = Fwog::UploadFormat::RGBA,
-                   .type = Fwog::UploadType::UBYTE,
-                   .pixels = pixels });
+  ecs::Entity entity = scene.CreateEntity("hello");
+  auto& transform = entity.AddComponent<ecs::Transform>();
+  transform.scale = { 10, 10 };
+  transform.translation = { 0, 0 };
+  transform.rotation = 0;
+  entity.AddComponent<ecs::Sprite>().index = 0;
 
-  stbi_image_free(pixels);
-
-  auto textureManager32 = ArrayTextureManager({ 32, 32 }, 100, Fwog::Format::R8G8B8A8_SRGB);
-  auto trollge = textureManager32.LoadFromFile("trollge", "assets/textures/test.png");
-  auto orang = textureManager32.LoadFromFile("orang", "assets/textures/test2.png");
-
-  auto textureManager64 = ArrayTextureManager({ 64, 64 }, 100, Fwog::Format::R8G8B8A8_SRGB);
-  auto froge = textureManager64.LoadFromFile("orang", "assets/textures/frog_pink.png");
-
-  std::vector<RenderableSprite> sprites;
-
-  for (int xx = -50; xx < 50; xx++)
-  for (int yy = -50; yy < 50; yy++)
-  {
-    RenderableSprite rs{};
-    rs.transform = glm::mat3x2(1);
-    rs.transform[0][0] = .25f;
-    rs.transform[1][1] = .25f;
-    rs.transform[2] = glm::vec2(xx, yy) / 2.f;
-    if (yy % 3 == 0)
-    {
-      rs.texture = trollge.arrayTexture;
-      rs.spriteIndex = trollge.layer;
-    }
-    else if (yy % 3 == 1)
-    {
-      rs.texture = orang.arrayTexture;
-      rs.spriteIndex = orang.layer;
-    }
-    else
-    {
-      rs.texture = froge.arrayTexture;
-      rs.spriteIndex = froge.layer;
-    }
-    rs.tint = glm::u8vec4(255, 255, 255, 255);
-    sprites.push_back(rs);
-  }
-
-  double tempAccum = 0;
+  _eventBus->Publish(ecs::AddSprite{ .path = "assets/textures/test2.png" });
 
   Timer timer;
   double simulationAccum = 0;
@@ -153,18 +110,6 @@ void ApplicationClient::Run()
   {
     double dt = timer.Elapsed_s();
     timer.Reset();
-
-    tempAccum += dt;
-    while (tempAccum > 1.0)
-    {
-      //std::cout << "FPS: " << 1.0 / dt << '\n';
-      tempAccum -= 1.0;
-    }
-
-    for (auto& sprite : sprites)
-    {
-      sprite.transform[2][0] += .5f * (float)dt;
-    }
 
     simulationAccum += dt;
     while (simulationAccum > _simulationTick)
@@ -184,6 +129,7 @@ void ApplicationClient::Run()
     ImGui::NewFrame();
 
     ImGui::Begin("hello");
+    ImGui::Text("Framerate: %fhz", 1.0 / dt);
     static char buffer[512]{ "localhost" };
     static int port = 1234;
     ImGui::InputText("Server host", buffer, 512);
@@ -222,8 +168,11 @@ void ApplicationClient::Run()
 
     ImGui::End();
 
-    _renderer->DrawBackground(bgTex);
-    _renderer->DrawSprites(sprites);
+    transform.rotation += float(3.14 * dt);
+    transform.scale *= .999f;
+    transform.translation.x += float(1.0 * dt);
+
+    renderingSystem.Update(dt);
 
     glDisable(GL_FRAMEBUFFER_SRGB);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

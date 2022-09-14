@@ -30,7 +30,7 @@ set(FWOG_BUILD_EXAMPLES false)
 FetchContent_Declare(
     fwog
     GIT_REPOSITORY https://github.com/JuanDiegoMontoya/Fwog.git
-    GIT_TAG        680d11753400cccb282199141672f3cbd2c346ed
+    GIT_TAG        abf37977427fe6f640ef2006752da331b2ff8afa
     GIT_SHALLOW ON
 )
 

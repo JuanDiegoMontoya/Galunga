@@ -1,5 +1,5 @@
 #include "Entity.h"
-#include "ecs/components/Delete.h"
+#include "ecs/components/core/Lifetime.h"
 
 namespace ecs
 {
@@ -7,6 +7,6 @@ namespace ecs
   {
     G_ASSERT_MSG(*this, "Tried to delete invalid entity");
 
-    GetOrAddComponent<ecs::DeleteNextFrame>();
+    GetOrAddComponent<ecs::DeleteNextTick>();
   }
 }

@@ -13,7 +13,7 @@ ArrayTextureManager::ArrayTextureManager(Fwog::Extent2D dimensions, uint32_t max
 {
 }
 
-TextureID ArrayTextureManager::LoadFromFile(std::string name, std::string_view path)
+TextureID ArrayTextureManager::LoadFromFile(std::string_view path)
 {
   if (_currentIndex + 1 >= _texture.CreateInfo().arrayLayers)
   {
@@ -46,16 +46,5 @@ TextureID ArrayTextureManager::LoadFromFile(std::string name, std::string_view p
 
   stbi_image_free(pixels);
 
-  _layerIndices.emplace(name, _currentIndex);
-
   return { &_texture, _currentIndex++ };
-}
-
-TextureID ArrayTextureManager::Get(std::string_view name)
-{
-  if (auto it = _layerIndices.find(std::string(name)); it != _layerIndices.end())
-  {
-    return { &_texture, it->second };
-  }
-  throw Exception(std::string("Attempted to erase texture asset which does not exist: ") + name.data());
 }

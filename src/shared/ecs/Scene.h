@@ -32,5 +32,6 @@ namespace ecs
     std::unique_ptr<entt::registry> _registry;
 
     friend class Entity;
+    friend class System;
   };
 }

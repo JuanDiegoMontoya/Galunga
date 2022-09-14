@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 
-class Renderer;
 class EventBus;
 struct GLFWwindow;
 
@@ -34,7 +33,6 @@ private:
   EventBus* _eventBus;
   Net::NetworkClient* _networkClient;
   GLFWwindow* _window;
-  Renderer* _renderer;
   Input::InputManager* _input;
   double _simulationTick = 1.0 / 60.0;
 };

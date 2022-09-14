@@ -2,7 +2,12 @@
 
 namespace ecs
 {
-  struct DeleteNextFrame
+  struct Lifetime
+  {
+    int microsecondsLeft;
+  };
+
+  struct DeleteNextTick
   {
     char _dummy;
   };
