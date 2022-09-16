@@ -40,31 +40,33 @@ set(galunga_shared_header_files
 set(galunga_client_source_files
 	"src/client/TextureManager.cpp" 
 	"src/client/Renderer.cpp"
-	"src/client/MainClient.cpp"
-	"src/client/ApplicationClient.cpp" 
-	"src/client/net/NetworkClient.cpp"
+	"src/client/main.cpp"
+	"src/client/Application.cpp" 
+	"src/client/net/Host.cpp"
 	"src/client/Input.cpp"
 	"src/client/ecs/systems/RenderingSystem.cpp"
+	"src/client/ecs/systems/DebugSystem.cpp"
 )
 
 set(galunga_client_header_files
 	"src/client/TextureManager.h" 
 	"src/client/Renderer.h"
-	"src/client/ApplicationClient.h"
-	"src/client/net/NetworkClient.h"
+	"src/client/Application.h"
+	"src/client/net/Host.h"
 	"src/client/Input.h"
 	"src/client/ecs/systems/RenderingSystem.h"
+	"src/client/ecs/systems/DebugSystem.h"
 )
 
 set(galunga_server_source_files
-	"src/server/MainServer.cpp"
-	"src/server/net/NetworkServer.cpp"
-	"src/server/ApplicationServer.cpp"
+	"src/server/main.cpp"
+	"src/server/net/Host.cpp"
+	"src/server/Application.cpp"
 )
 
 set(galunga_server_header_files
-	"src/server/net/NetworkServer.h"
-	"src/server/ApplicationServer.h"
+	"src/server/net/Host.h"
+	"src/server/Application.h"
 )
 
 add_executable(galunga_client

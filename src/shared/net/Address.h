@@ -2,7 +2,7 @@
 #include <string>
 #include <cstdint>
 
-namespace Net
+namespace shared::net
 {
   struct Address
   {

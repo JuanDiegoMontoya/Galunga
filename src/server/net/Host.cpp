@@ -1,11 +1,11 @@
-#include "NetworkServer.h"
+#include "Host.h"
 #include <enet/enet.h>
 #include <cstdio>
 #include <stdexcept>
 
-namespace Net
+namespace server::net
 {
-  NetworkServer::NetworkServer(EventBus* eventBus)
+  Host::Host(EventBus* eventBus)
     : _eventBus(eventBus)
   {
     if (enet_initialize() != 0)
@@ -30,13 +30,13 @@ namespace Net
     }
   }
 
-  NetworkServer::~NetworkServer()
+  Host::~Host()
   {
     enet_host_destroy(_server); // ENet allows null hosts here
     enet_deinitialize();
   }
 
-  void NetworkServer::Poll([[maybe_unused]] double dt)
+  void Host::Poll([[maybe_unused]] double dt)
   {
     ENetEvent event{};
     while (enet_host_service(_server, &event, 0) > 0)

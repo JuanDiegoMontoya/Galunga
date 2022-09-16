@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Net
+namespace shared::net
 {
   // information about a player's connection
   class Player

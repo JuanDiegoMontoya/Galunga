@@ -1,7 +1,7 @@
 #pragma once
 #include <ecs/systems/System.h>
 
-namespace ecs
+namespace shared::ecs
 {
   class LifetimeSystem : public System
   {

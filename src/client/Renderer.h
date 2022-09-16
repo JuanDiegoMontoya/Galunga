@@ -11,30 +11,33 @@ namespace Fwog
   class Texture;
 }
 
-struct RenderableSprite
+namespace client
 {
-  glm::mat3x2 transform;
-  const Fwog::Texture* texture;
-  uint32_t spriteIndex;
-  glm::u8vec4 tint;
-};
+  struct RenderableSprite
+  {
+    glm::mat3x2 transform;
+    const Fwog::Texture* texture;
+    uint32_t spriteIndex;
+    glm::u8vec4 tint;
+  };
 
-class Renderer
-{
-public:
-  Renderer(GLFWwindow* window);
-  ~Renderer();
+  class Renderer
+  {
+  public:
+    Renderer(GLFWwindow* window);
+    ~Renderer();
 
-  Renderer(const Renderer&) = delete;
-  Renderer(Renderer&&) = delete;
-  Renderer& operator=(const Renderer&) = delete;
-  Renderer& operator=(Renderer&&) = delete;
+    Renderer(const Renderer&) = delete;
+    Renderer(Renderer&&) = delete;
+    Renderer& operator=(const Renderer&) = delete;
+    Renderer& operator=(Renderer&&) = delete;
 
-  void DrawBackground(const Fwog::Texture& texture);
-  void DrawSprites(std::vector<RenderableSprite> sprites);
+    void DrawBackground(const Fwog::Texture& texture);
+    void DrawSprites(std::vector<RenderableSprite> sprites);
 
-  struct Resources;
+    struct Resources;
 
-private:
-  Resources* _resources;
-};
+  private:
+    Resources* _resources;
+  };
+}

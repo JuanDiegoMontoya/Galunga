@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <imgui_impl_glfw.h>
 
-namespace Input
+namespace client::input
 {
   namespace internal
   {

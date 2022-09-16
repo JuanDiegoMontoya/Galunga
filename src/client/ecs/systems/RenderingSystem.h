@@ -4,15 +4,19 @@
 #include <ecs/events/AddSprite.h>
 #include <memory>
 
-class Renderer;
+namespace client
+{
+  class Renderer;
+}
+
 struct GLFWwindow;
 
 namespace client::ecs
 {
-  class RenderingSystem : public ::ecs::System
+  class RenderingSystem : public shared::ecs::System
   {
   public:
-    RenderingSystem(::ecs::Scene* scene, EventBus* eventBus, GLFWwindow* window);
+    RenderingSystem(shared::ecs::Scene* scene, EventBus* eventBus, GLFWwindow* window);
 
     void Update(double dt) override;
 
@@ -22,6 +26,6 @@ namespace client::ecs
     GLFWwindow* _window;
     std::unique_ptr<Fwog::Texture> _backgroundTexture;
 
-    void Listener(::ecs::AddSprite& e);
+    void Listener(shared::ecs::AddSprite& e);
   };
 }

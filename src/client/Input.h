@@ -8,7 +8,7 @@
 
 struct GLFWwindow;
 
-namespace Input
+namespace client::input
 {
   namespace internal
   {

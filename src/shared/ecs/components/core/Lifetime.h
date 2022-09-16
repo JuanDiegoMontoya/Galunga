@@ -1,6 +1,6 @@
 #pragma once
 
-namespace ecs
+namespace shared::ecs
 {
   struct Lifetime
   {

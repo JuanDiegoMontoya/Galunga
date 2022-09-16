@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/vec2.hpp>
 
-namespace ecs
+namespace shared::ecs
 {
   struct Transform
   {

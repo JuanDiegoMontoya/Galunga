@@ -6,22 +6,25 @@ class EventBus;
 typedef struct _ENetHost ENetHost; // have to forward declare it like this because C sucks
 typedef struct _ENetPeer ENetPeer;
 
-namespace Net
+namespace shared::net
 {
   struct Address;
+}
 
-  class NetworkClient
+namespace client::net
+{
+  class Host
   {
   public:
-    NetworkClient(EventBus* eventBus);
-    ~NetworkClient();
+    Host(EventBus* eventBus);
+    ~Host();
 
-    NetworkClient(const NetworkClient&) = delete;
-    NetworkClient(NetworkClient&&) = delete;
-    NetworkClient& operator=(const NetworkClient&) = delete;
-    NetworkClient& operator=(NetworkClient&&) = delete;
+    Host(const Host&) = delete;
+    Host(Host&&) = delete;
+    Host& operator=(const Host&) = delete;
+    Host& operator=(Host&&) = delete;
 
-    void ConnectToServer(const Address& address);
+    void ConnectToServer(const shared::net::Address& address);
     void Disconnect();
     bool IsConnected() const;
     void SendSimpleMessage(const char* message);
@@ -31,6 +34,6 @@ namespace Net
     EventBus* _eventBus;
     ENetHost* _client;
     ENetPeer* _server;
-    //std::unordered_set<Net::Player> _players;
+    //std::unordered_set<net::Player> _players;
   };
 }

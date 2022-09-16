@@ -5,18 +5,18 @@ class EventBus;
 typedef struct _ENetHost ENetHost; // have to forward declare it like this because C sucks
 typedef struct _ENetPeer ENetPeer;
 
-namespace Net
+namespace server::net
 {
-  class NetworkServer
+  class Host
   {
   public:
-    NetworkServer(EventBus* eventBus);
-    ~NetworkServer();
+    Host(EventBus* eventBus);
+    ~Host();
 
-    NetworkServer(const NetworkServer&) = delete;
-    NetworkServer(NetworkServer&&) = delete;
-    NetworkServer& operator=(const NetworkServer&) = delete;
-    NetworkServer& operator=(NetworkServer&&) = delete;
+    Host(const Host&) = delete;
+    Host(Host&&) = delete;
+    Host& operator=(const Host&) = delete;
+    Host& operator=(Host&&) = delete;
 
     void Poll(double dt);
 

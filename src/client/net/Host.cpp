@@ -1,13 +1,13 @@
-#include "client/net/NetworkClient.h"
+#include "Host.h"
 #include "net/Address.h"
 #include "net/NetEvents.h"
 #include "GAssert.h"
 #include "enet/enet.h"
 #include <stdexcept>
 
-namespace Net
+namespace client::net
 {
-  Net::NetworkClient::NetworkClient(EventBus* eventBus)
+  Host::Host(EventBus* eventBus)
     : _eventBus(eventBus),
     _client(nullptr),
     _server(nullptr)
@@ -22,13 +22,14 @@ namespace Net
                                2, // max. channels
                                0, // max. incoming bandwidth
                                0);// max. outgoing bandwidth
+
     if (_client == nullptr)
     {
       throw std::runtime_error("An error occurred while creating the client");
     }
   }
 
-  NetworkClient::~NetworkClient()
+  Host::~Host()
   {
     // we are still connected- try to disconnect
     if (_server)
@@ -39,7 +40,7 @@ namespace Net
     enet_deinitialize();
   }
 
-  void NetworkClient::ConnectToServer(const Address& address)
+  void Host::ConnectToServer(const shared::net::Address& address)
   {
     ENetAddress eaddress{};
     enet_address_set_host(&eaddress, address.host.c_str());
@@ -68,19 +69,19 @@ namespace Net
     }
   }
 
-  void NetworkClient::Disconnect()
+  void Host::Disconnect()
   {
-    _eventBus->Publish(Net::Disconnect{});
+    _eventBus->Publish(shared::net::Disconnect{});
     enet_peer_disconnect_now(_server, 0);
     _server = nullptr;
   }
 
-  bool NetworkClient::IsConnected() const
+  bool Host::IsConnected() const
   {
     return _server != nullptr;
   }
 
-  void NetworkClient::SendSimpleMessage(const char* message)
+  void Host::SendSimpleMessage(const char* message)
   {
     G_ASSERT(_server && "Must be connected to a server to send a message");
     ENetPacket* packet = enet_packet_create(message,
@@ -89,7 +90,7 @@ namespace Net
     enet_peer_send(_server, 0, packet);
   }
 
-  void NetworkClient::Poll([[maybe_unused]] double dt)
+  void Host::Poll([[maybe_unused]] double dt)
   {
     ENetEvent event{};
     while (enet_host_service(_client, &event, 0) > 0)

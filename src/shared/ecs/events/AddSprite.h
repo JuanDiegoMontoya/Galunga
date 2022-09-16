@@ -2,7 +2,7 @@
 #include <utils/EventBus.h>
 #include <string>
 
-namespace ecs
+namespace shared::ecs
 {
   struct AddSprite : public EventBus::Event
   {

@@ -1,7 +1,7 @@
 #include "Entity.h"
 #include "ecs/components/core/Lifetime.h"
 
-namespace ecs
+namespace shared::ecs
 {
   void Entity::Destroy()
   {

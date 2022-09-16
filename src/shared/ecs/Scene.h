@@ -5,7 +5,7 @@
 
 class EventBus;
 
-namespace ecs
+namespace shared::ecs
 {
   class Entity;
 

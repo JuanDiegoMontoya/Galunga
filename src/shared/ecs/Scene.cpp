@@ -4,7 +4,7 @@
 #include "utils/EventBus.h"
 #include <entt/entity/registry.hpp>
 
-namespace ecs
+namespace shared::ecs
 {
   Scene::Scene(EventBus* eventBus)
     : _eventBus(eventBus)

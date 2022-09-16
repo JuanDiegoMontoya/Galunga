@@ -1,7 +1,7 @@
 #pragma once
 #include "utils/EventBus.h"
 
-namespace Net
+namespace shared::net
 {
   struct Disconnect : public EventBus::Event {};
 }

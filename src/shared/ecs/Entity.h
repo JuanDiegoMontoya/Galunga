@@ -5,7 +5,7 @@
 #include <entt/entity/registry.hpp>
 #include <utility>
 
-namespace ecs
+namespace shared::ecs
 {
   class Entity
   {
