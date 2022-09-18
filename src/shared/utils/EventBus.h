@@ -11,21 +11,21 @@
 class EventBus
 {
 public:
-  struct Event { bool handled = false; };
-
   // implementation details
 private:
   class EventDispatcher
   {
   public:
     virtual ~EventDispatcher() = default;
-    void Dispatch(Event& e) const
+
+    template<typename T>
+    void Dispatch(T& e) const
     {
-      InvokeHandler(e);
+      InvokeHandler(&e);
     }
 
   protected:
-    virtual void InvokeHandler(Event& e) const = 0;
+    virtual void InvokeHandler(void* e) const = 0;
   };
 
   // type-erased wrapper
@@ -43,11 +43,11 @@ private:
     {
     }
 
-    void InvokeHandler(Event& e) const override
+    void InvokeHandler(void* e) const override
     {
-      if (!m_PredicateFn || m_PredicateFn(static_cast<EventType&>(e)))
+      if (!m_PredicateFn || m_PredicateFn(*reinterpret_cast<EventType*>(e)))
       {
-        (m_Receiver->*m_HandlerFn)(static_cast<EventType&>(e));
+        (m_Receiver->*m_HandlerFn)(*reinterpret_cast<EventType*>(e));
       }
     }
 
@@ -83,7 +83,6 @@ public:
     {
       for (const auto& handler : entry->second)
       {
-        if (e.handled) return;
         handler->Dispatch(e);
       }
     }
@@ -121,18 +120,18 @@ public:
   }
 
   // unsubscribes a receiver from all events
-  template<typename Receiver>
-  void UnsubscribeAll(Receiver* receiver)
-  {
-    for (auto& [_, handlers] : m_Subscriptions)
-    {
-      std::erase_if(handlers, [&](const auto& handler)
-        {
-          using T = EventHandler<Receiver, Event>;
-          return static_cast<T&>(*handler) == receiver;
-        });
-    }
-  }
+  //template<typename Receiver>
+  //void UnsubscribeAll(Receiver* receiver)
+  //{
+  //  for (auto& [_, handlers] : m_Subscriptions)
+  //  {
+  //    std::erase_if(handlers, [&](const auto& handler)
+  //      {
+  //        using T = EventHandler<Receiver, Event>;
+  //        return static_cast<T&>(*handler) == receiver; // this static cast is UB
+  //      });
+  //  }
+  //}
 
 private:
   // potential optimization: https://mc-deltat.github.io/articles/stateful-metaprogramming-cpp20

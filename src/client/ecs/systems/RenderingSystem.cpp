@@ -2,6 +2,7 @@
 #include <ecs/components/core/Sprite.h>
 #include <ecs/components/core/Transform.h>
 #include <client/Renderer.h>
+#include <utils/EventBus.h>
 #include <entt/entity/registry.hpp>
 #include <stb_image.h>
 #include <glm/gtx/matrix_transform_2d.hpp>

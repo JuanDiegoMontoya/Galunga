@@ -2,6 +2,7 @@
 #include "net/Address.h"
 #include "net/NetEvents.h"
 #include "GAssert.h"
+#include <utils/EventBus.h>
 #include "enet/enet.h"
 #include <stdexcept>
 

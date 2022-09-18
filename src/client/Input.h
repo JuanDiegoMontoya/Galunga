@@ -176,7 +176,7 @@ namespace client::input
     float scale = 1;
   };
 
-  struct AxisBindingBase : public EventBus::Event
+  struct AxisBindingBase
   {
     float magnitude = 0;
   };
@@ -194,7 +194,6 @@ namespace client::input
     void PollEvents(double dt);
 
     template<class T>
-    requires (std::derived_from<T, EventBus::Event>)
     void AddActionBinding(const ActionInput& input)
     {
       _actionBindings.push_back(ActionBinding{
