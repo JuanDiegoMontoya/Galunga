@@ -60,6 +60,7 @@ set(galunga_client_header_files
 	"src/client/Input.h"
 	"src/client/ecs/systems/RenderingSystem.h"
 	"src/client/ecs/systems/DebugSystem.h"
+	"src/client/ecs/components/DebugDraw.h"
 )
 
 set(galunga_server_source_files

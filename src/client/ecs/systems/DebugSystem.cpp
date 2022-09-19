@@ -1,6 +1,9 @@
 #include "DebugSystem.h"
 #include "client/net/Host.h"
-#include "net/Address.h"
+#include "shared/net/Address.h"
+#include "client/ecs/components/DebugDraw.h"
+#include <entt/entity/registry.hpp>
+#include "client/Renderer.h"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -10,8 +13,9 @@
 
 namespace client::ecs
 {
-  DebugSystem::DebugSystem(shared::ecs::Scene* scene, EventBus* eventBus, GLFWwindow* window, client::net::Host* networkClient)
+  DebugSystem::DebugSystem(shared::ecs::Scene* scene, EventBus* eventBus, GLFWwindow* window, net::Host* networkClient, Renderer* renderer)
     : System(scene, eventBus),
+      _renderer(renderer),
       _window(window),
       _networkClient(networkClient)
   {
@@ -30,6 +34,17 @@ namespace client::ecs
 
   void DebugSystem::Update(double dt)
   {
+    // draw debug primitives
+    auto view = SceneRegistry()->view<ecs::DebugLine>();
+    std::vector<ecs::DebugLine> lines;
+    lines.reserve(view.size());
+    for (auto&& [entity, line] : view.each())
+    {
+      lines.push_back(line);
+    }
+    _renderer->DrawLines(lines);
+
+    // draw debug GUI
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();

@@ -1,6 +1,8 @@
 #pragma once
+#include "ecs/components/DebugDraw.h"
 #include <string_view>
 #include <vector>
+#include <span>
 #include <glm/mat3x2.hpp>
 #include <glm/vec4.hpp>
 
@@ -34,6 +36,11 @@ namespace client
 
     void DrawBackground(const Fwog::Texture& texture);
     void DrawSprites(std::vector<RenderableSprite> sprites);
+
+    // debug drawing utilities
+    void DrawLines(std::span<const ecs::DebugLine> lines);
+    void DrawBoxes(std::span<const ecs::DebugBox> boxes);
+    void DrawCircles(std::span<const ecs::DebugCircle> circles);
 
     struct Resources;
 

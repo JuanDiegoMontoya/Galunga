@@ -16,12 +16,12 @@ namespace client::ecs
   class RenderingSystem : public shared::ecs::System
   {
   public:
-    RenderingSystem(shared::ecs::Scene* scene, EventBus* eventBus, GLFWwindow* window);
+    RenderingSystem(shared::ecs::Scene* scene, EventBus* eventBus, GLFWwindow* window, Renderer* renderer);
 
     void Update(double dt) override;
 
   private:
-    std::unique_ptr<Renderer> _renderer;
+    Renderer* _renderer;
     ArrayTextureManager _textureManager;
     GLFWwindow* _window;
     std::unique_ptr<Fwog::Texture> _backgroundTexture;

@@ -13,9 +13,9 @@
 
 namespace client::ecs
 {
-  RenderingSystem::RenderingSystem(shared::ecs::Scene* scene, EventBus* eventBus, GLFWwindow* window)
+  RenderingSystem::RenderingSystem(shared::ecs::Scene* scene, EventBus* eventBus, GLFWwindow* window, Renderer* renderer)
     : System(scene, eventBus),
-      _renderer(std::make_unique<Renderer>(window)),
+      _renderer(renderer),
       _textureManager({ 32, 32 }, 100, Fwog::Format::R8G8B8A8_SRGB),
       _window(window)
   {
@@ -55,7 +55,6 @@ namespace client::ecs
       {
         const auto&& [transform, sprite] = view.get<shared::ecs::Transform, shared::ecs::Sprite>(entity);
         auto model = glm::mat3x2(1);
-        //model = glm::scale(glm::translate(glm::mat3(1)) * glm::rotate(glm::mat3(1), transform.rotation))
         model = glm::scale(glm::rotate(glm::translate(glm::mat3(1), transform.translation), transform.rotation), transform.scale);
 
         sprites.push_back(

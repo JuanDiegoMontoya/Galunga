@@ -114,6 +114,12 @@ namespace client
     Fwog::GraphicsPipeline quadBatchedPipeline;
     Fwog::TypedBuffer<SpriteUniforms> spritesUniformsBuffer;
     Fwog::TypedBuffer<FrameUniforms> frameUniformsBuffer;
+
+    // for drawing debug boxes and circles
+    Fwog::GraphicsPipeline primitivePipeline;
+    
+    // for drawing debug lines
+    Fwog::GraphicsPipeline linesPipeline;
   };
 
   Renderer::Renderer(GLFWwindow* window)
@@ -157,7 +163,34 @@ namespace client
     _resources->quadBatchedPipeline = Fwog::CompileGraphicsPipeline({
       .vertexShader = &quadBatched_vs,
       .fragmentShader = &quadBatched_fs,
-      .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::TRIANGLE_FAN} });
+      .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::TRIANGLE_FAN}
+    });
+
+    // debug pipelines
+    auto simpleColor_fs = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile("assets/shaders/SimpleColor.frag.glsl"));
+
+    auto lines_vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/LinesBatched.vert.glsl"));
+    auto linePosDesc = Fwog::VertexInputBindingDescription
+    {
+      .location = 0,
+      .binding = 0,
+      .format = Fwog::Format::R32G32_FLOAT,
+      .offset = 0,
+    };
+    auto lineColorDesc = Fwog::VertexInputBindingDescription
+    {
+      .location = 1,
+      .binding = 0,
+      .format = Fwog::Format::R8G8B8A8_UNORM,
+      .offset = offsetof(ecs::DebugLine, color0),
+    };
+    auto lineInputDescs = { linePosDesc, lineColorDesc };
+    _resources->linesPipeline = Fwog::CompileGraphicsPipeline({
+      .vertexShader = &lines_vs,
+      .fragmentShader = &simpleColor_fs,
+      .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::LINE_LIST },
+      .vertexInputState = lineInputDescs
+    });
   }
 
   Renderer::~Renderer()
@@ -184,6 +217,7 @@ namespace client
       return;
     }
 
+    // TODO: remove
     auto view = glm::mat4(1);
     auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
     auto cameraUniformBuffer = Fwog::Buffer(proj * view);
@@ -228,8 +262,8 @@ namespace client
     Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
     Fwog::Cmd::BindStorageBuffer(0, _resources->spritesUniformsBuffer, 0, _resources->spritesUniformsBuffer.Size());
 
-    size_t firstInstance = 0;
-    for (size_t i = 0; i < sprites.size(); i++)
+    std::size_t firstInstance = 0;
+    for (std::size_t i = 0; i < sprites.size(); i++)
     {
       const auto& sprite = sprites[i];
 
@@ -242,6 +276,25 @@ namespace client
         firstInstance = i + 1;
       }
     }
+    Fwog::EndRendering();
+  }
+
+  void Renderer::DrawLines(std::span<const ecs::DebugLine> lines)
+  {
+    // TODO: remove
+    auto view = glm::mat4(1);
+    auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
+    auto cameraUniformBuffer = Fwog::Buffer(proj * view);
+    
+    // this buffer doesn't need to be created every frame
+    auto vertexBuffer = Fwog::Buffer(lines);
+
+    Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720}}},
+                                    .clearColorOnLoad = false });
+    Fwog::Cmd::BindGraphicsPipeline(_resources->linesPipeline);
+    Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
+    Fwog::Cmd::BindVertexBuffer(0, vertexBuffer, 0, sizeof(ecs::DebugLine) / 2);
+    Fwog::Cmd::Draw(static_cast<uint32_t>(lines.size() * 2), 1, 0, 0);
     Fwog::EndRendering();
   }
 }

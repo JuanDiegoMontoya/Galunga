@@ -8,8 +8,10 @@
 #include <Fwog/Texture.h>
 #include <GLFW/glfw3.h>
 #include <ecs/systems/core/LifetimeSystem.h>
+#include <ecs/systems/core/CollisionSystem.h>
 #include <client/ecs/systems/RenderingSystem.h>
 #include <client/ecs/systems/DebugSystem.h>
+#include "Renderer.h"
 
 #include <utility>
 #include <stdexcept>
@@ -19,6 +21,9 @@
 #include <ecs/Entity.h>
 #include <ecs/components/core/Sprite.h>
 #include <ecs/components/core/Transform.h>
+#include <ecs/components/core/Collider.h>
+#include <ecs/events/Collision.h>
+#include <client/ecs/components/DebugDraw.h>
 
 namespace client
 {
@@ -78,19 +83,43 @@ namespace client
 
   void Application::Run()
   {
+    auto renderer = Renderer(_window);
     auto scene = shared::ecs::Scene(_eventBus);
     auto lifetimeSystem = shared::ecs::LifetimeSystem(&scene, _eventBus);
-    auto renderingSystem = client::ecs::RenderingSystem(&scene, _eventBus, _window);
-    auto debugSystem = client::ecs::DebugSystem(&scene, _eventBus, _window, _networkClient);
+    auto collisionSystem = shared::ecs::CollisionSystem(&scene, _eventBus);
+    auto renderingSystem = client::ecs::RenderingSystem(&scene, _eventBus, _window, &renderer);
+    auto debugSystem = client::ecs::DebugSystem(&scene, _eventBus, _window, _networkClient, &renderer);
 
     shared::ecs::Entity entity = scene.CreateEntity("hello");
     auto& transform = entity.AddComponent<shared::ecs::Transform>();
     transform.scale = { 10, 10 };
-    transform.translation = { 0, 0 };
-    transform.rotation = 0;
+    transform.translation = { 0, -3 };
+    transform.rotation = 3.14f / 4.0f;
     entity.AddComponent<shared::ecs::Sprite>().index = 0;
+    entity.AddComponent<shared::ecs::Collider>();
+
+    auto e1 = scene.CreateEntity("other");
+    e1.AddComponent<shared::ecs::Transform>().translation = { 8, 0 };
+    e1.AddComponent<shared::ecs::Sprite>().index = 0;
+    e1.AddComponent<shared::ecs::Collider>();
+    auto& line = e1.AddComponent<client::ecs::DebugLine>();
+    line.p0 = { -5, 0 };
+    line.p1 = { 5, 5 };
+    line.color0 = { 255, 0, 0, 255 };
+    line.color1 = { 0, 255, 0, 255 };
 
     _eventBus->Publish(shared::ecs::AddSprite{ .path = "assets/textures/test2.png" });
+    
+    struct Test
+    {
+      void handle(shared::ecs::Collision& c)
+      {
+        printf("collision: %d, %d\n", entt::entity(c.entity0), entt::entity(c.entity1));
+      }
+    };
+
+    Test test;
+    _eventBus->Subscribe(&test, &Test::handle);
 
     Timer timer;
     double simulationAccum = 0;
@@ -104,6 +133,7 @@ namespace client
       {
         _input->PollEvents(_simulationTick);
         _networkClient->Poll(_simulationTick);
+        collisionSystem.Update(_simulationTick);
         simulationAccum -= _simulationTick;
       }
 
@@ -112,8 +142,8 @@ namespace client
         glfwSetWindowShouldClose(_window, true);
       }
 
-      transform.rotation += float(3.14 * dt);
-      transform.scale *= .999f;
+      //transform.rotation += float(3.14 * dt);
+      //transform.scale *= .999f;
       transform.translation.x += float(1.0 * dt);
 
       renderingSystem.Update(dt);
