@@ -4,6 +4,7 @@
 #include <entt/entity/entity.hpp>
 #include <entt/entity/registry.hpp>
 #include <utility>
+#include <type_traits>
 
 namespace shared::ecs
 {
@@ -30,10 +31,18 @@ namespace shared::ecs
     template<typename T, typename... Args>
     T& AddComponent(Args&&... args)
     {
-      G_ASSERT_MSG(!HasComponent<T>(), "Entity already has component");
+      G_ASSERT_MSG(!HasComponents<T>(), "Entity already has component");
       return _scene->_registry->emplace<T>(_entityHandle, std::forward<Args>(args)...);
     }
 
+    // leverage entt's empty type optimization
+    template<typename T>
+    requires std::is_empty_v<T>
+    void AddComponent()
+    {
+      _scene->_registry->emplace<T>(_entityHandle);
+    }
+    
     template<typename T, typename... Args>
     T& GetOrAddComponent(Args&&... args)
     {
@@ -54,10 +63,10 @@ namespace shared::ecs
       return _scene->_registry->get<T>(_entityHandle);
     }
 
-    template<typename T>
-    [[nodiscard]] bool HasComponent() const
+    template<typename... Ts>
+    [[nodiscard]] bool HasComponents() const
     {
-      return _scene->_registry->try_get<T>(_entityHandle) != nullptr;
+      return _scene->_registry->all_of<Ts...>(_entityHandle);
     }
 
   private:

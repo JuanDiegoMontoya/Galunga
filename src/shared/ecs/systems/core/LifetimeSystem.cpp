@@ -12,26 +12,24 @@ namespace shared::ecs
 
   void LifetimeSystem::Update(double dt)
   {
-    auto deleteNTicksView = SceneRegistry()->view<DeleteInNTicks>();
-    deleteNTicksView.each([this](auto entity, DeleteInNTicks& d)
+    for (auto&& [entity, deleteTicks] : SceneRegistry()->view<DeleteInNTicks>().each())
+    {
+      if (--deleteTicks.ticks <= 0)
       {
-        if (--d.ticks <= 0)
-        {
-          SceneRegistry()->emplace<ecs::DeleteNextTick>(entity);
-        }
-      });
+        SceneRegistry()->emplace<ecs::DeleteNextTick>(entity);
+      }
+    }
 
     auto deleteView = SceneRegistry()->view<DeleteNextTick>();
     SceneRegistry()->destroy(deleteView.begin(), deleteView.end());
 
-    auto lifetimeView = SceneRegistry()->view<Lifetime>();
-    lifetimeView.each([this, dt](auto entity, Lifetime& lifetime)
+    for (auto&& [entity, lifetime] : SceneRegistry()->view<Lifetime>().each())
+    {
+      lifetime.microsecondsLeft -= static_cast<int>(dt * 1'000'000.0 + 0.5);
+      if (lifetime.microsecondsLeft <= 0)
       {
-        lifetime.microsecondsLeft -= static_cast<int>(dt * 1'000'000.0 + 0.5);
-        if (lifetime.microsecondsLeft <= 0)
-        {
-          SceneRegistry()->emplace<ecs::DeleteNextTick>(entity);
-        }
-      });
+        SceneRegistry()->emplace<ecs::DeleteNextTick>(entity);
+      }
+    }
   }
 }

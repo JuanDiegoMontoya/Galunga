@@ -10,8 +10,6 @@
 
 class EventBus
 {
-public:
-  // implementation details
 private:
   class EventDispatcher
   {
@@ -28,48 +26,10 @@ private:
     virtual void InvokeHandler(void* e) const = 0;
   };
 
-  // type-erased wrapper
-  template<typename Receiver, typename EventType>
-  class EventHandler : public EventDispatcher
-  {
-  public:
-    using HandlerFn = void(Receiver::*)(EventType&);
-    using PredicateFn = std::function<bool(const EventType&)>;
-
-    EventHandler(Receiver* receiver, HandlerFn handlerFn, PredicateFn predicateFn)
-      : m_Receiver(receiver), 
-        m_HandlerFn(handlerFn), 
-        m_PredicateFn(std::move(predicateFn))
-    {
-    }
-
-    void InvokeHandler(void* e) const override
-    {
-      if (!m_PredicateFn || m_PredicateFn(*reinterpret_cast<EventType*>(e)))
-      {
-        (m_Receiver->*m_HandlerFn)(*reinterpret_cast<EventType*>(e));
-      }
-    }
-
-    bool operator==(const EventHandler& rhs) const noexcept
-    {
-      return m_Receiver == rhs.m_Receiver && m_HandlerFn == rhs.m_HandlerFn;
-    }
-
-    bool operator==(const Receiver* rhs) const
-    {
-      return m_Receiver == rhs;
-    }
-
-  private:
-    Receiver* m_Receiver;
-    HandlerFn m_HandlerFn;
-    PredicateFn m_PredicateFn;
-  };
-
-public:
   using Dispatcher = std::unique_ptr<EventDispatcher>;
   using HandlerList = std::vector<Dispatcher>;
+
+public:
 
   EventBus() = default;
   EventBus(const EventBus&) = delete;
@@ -136,4 +96,43 @@ public:
 private:
   // potential optimization: https://mc-deltat.github.io/articles/stateful-metaprogramming-cpp20
   std::unordered_map<std::type_index, HandlerList> m_Subscriptions;
+
+  // type-erased wrapper
+  template<typename Receiver, typename EventType>
+  class EventHandler : public EventDispatcher
+  {
+  public:
+    using HandlerFn = void(Receiver::*)(EventType&);
+    using PredicateFn = std::function<bool(const EventType&)>;
+
+    EventHandler(Receiver* receiver, HandlerFn handlerFn, PredicateFn predicateFn)
+      : m_Receiver(receiver),
+      m_HandlerFn(handlerFn),
+      m_PredicateFn(std::move(predicateFn))
+    {
+    }
+
+    void InvokeHandler(void* e) const override
+    {
+      if (!m_PredicateFn || m_PredicateFn(*reinterpret_cast<EventType*>(e)))
+      {
+        (m_Receiver->*m_HandlerFn)(*reinterpret_cast<EventType*>(e));
+      }
+    }
+
+    bool operator==(const EventHandler& rhs) const noexcept
+    {
+      return m_Receiver == rhs.m_Receiver && m_HandlerFn == rhs.m_HandlerFn;
+    }
+
+    bool operator==(const Receiver* rhs) const
+    {
+      return m_Receiver == rhs;
+    }
+
+  private:
+    Receiver* m_Receiver;
+    HandlerFn m_HandlerFn;
+    PredicateFn m_PredicateFn;
+  };
 };

@@ -3,10 +3,8 @@
 
 namespace shared::ecs
 {
-  struct Transform
+  struct Collider
   {
-    glm::vec2 translation = { 0, 0 };
-    float rotation = 0; // radians
     glm::vec2 scale = { 1, 1 };
   };
 }

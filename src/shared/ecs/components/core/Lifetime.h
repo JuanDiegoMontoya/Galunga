@@ -7,10 +7,7 @@ namespace shared::ecs
     int microsecondsLeft;
   };
 
-  struct DeleteNextTick
-  {
-    char _dummy;
-  };
+  struct DeleteNextTick {};
 
   struct DeleteInNTicks
   {

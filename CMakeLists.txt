@@ -14,6 +14,7 @@ set(galunga_shared_source_files
 	"src/shared/ecs/Scene.cpp"
 	"src/shared/ecs/systems/System.cpp"
 	"src/shared/ecs/systems/core/LifetimeSystem.cpp"
+	"src/shared/ecs/systems/core/CollisionSystem.cpp"
 )
 
 set(galunga_shared_header_files
@@ -35,6 +36,9 @@ set(galunga_shared_header_files
 	"src/shared/ecs/components/core/Transform.h"
 	"src/shared/ecs/components/core/Sprite.h"
 	"src/shared/ecs/events/AddSprite.h"
+	"src/shared/ecs/components/core/Collider.h"
+	"src/shared/ecs/systems/core/CollisionSystem.h"
+	"src/shared/ecs/events/Collision.h"
 )
 
 set(galunga_client_source_files
