@@ -35,14 +35,32 @@ namespace client::ecs
   void DebugSystem::Update(double dt)
   {
     // draw debug primitives
-    auto view = SceneRegistry()->view<ecs::DebugLine>();
+    auto viewLine = SceneRegistry()->view<ecs::DebugLine>();
+    auto viewBox = SceneRegistry()->view<ecs::DebugBox>();
+    auto viewCircle = SceneRegistry()->view<ecs::DebugCircle>();
     std::vector<ecs::DebugLine> lines;
-    lines.reserve(view.size());
-    for (auto&& [entity, line] : view.each())
+    std::vector<ecs::DebugBox> boxes;
+    std::vector<ecs::DebugCircle> circles;
+    lines.reserve(viewLine.size());
+    boxes.reserve(viewBox.size());
+    circles.reserve(viewCircle.size());
+    
+    for (auto&& [_, line] : viewLine.each())
     {
       lines.push_back(line);
     }
+    for (auto&& [_, box] : viewBox.each())
+    {
+      boxes.push_back(box);
+    }
+    for (auto&& [_, circle] : viewCircle.each())
+    {
+      circles.push_back(circle);
+    }
+
     _renderer->DrawLines(lines);
+    _renderer->DrawBoxes(boxes);
+    //_renderer->DrawCircles(circles);
 
     // draw debug GUI
     ImGui_ImplOpenGL3_NewFrame();

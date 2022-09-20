@@ -14,9 +14,11 @@
 #include <algorithm>
 #include <execution>
 #include <atomic>
+#include <vector>
 
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
 
 #if !defined(NDEBUG)
 static void GLAPIENTRY glErrorCallback(
@@ -83,11 +85,34 @@ static void GLAPIENTRY glErrorCallback(
 
 namespace client
 {
+  namespace
+  {
+    std::vector<glm::vec2> MakeBoxVertices()
+    {
+      // line strip
+      return { {-0.5, -0.5}, {0.5, -0.5}, {0.5, 0.5}, {-0.5, 0.5}, {-0.5, -0.5} };
+    }
+
+    std::vector<glm::vec2> MakeCircleVertices([[maybe_unused]] int segments)
+    {
+      return {};
+    }
+
+    constexpr std::uint32_t CIRCLE_SEGMENTS = 50;
+  }
+
   struct SpriteUniforms
   {
     glm::mat3x2 transform;
     uint32_t spriteIndex;
     glm::u8vec4 tint4x8;
+  };
+
+  struct PrimitiveUniforms
+  {
+    glm::mat3x2 transform;
+    glm::u8vec4 color;
+    glm::uint _padding;
   };
 
   struct FrameUniforms
@@ -117,6 +142,8 @@ namespace client
 
     // for drawing debug boxes and circles
     Fwog::GraphicsPipeline primitivePipeline;
+    Fwog::TypedBuffer<glm::vec2> boxVertexBuffer;
+    Fwog::TypedBuffer<glm::vec2> circleVertexBuffer;
     
     // for drawing debug lines
     Fwog::GraphicsPipeline linesPipeline;
@@ -151,7 +178,9 @@ namespace client
                   .height = framebufferHeight,
                   .output_ldr = Fwog::CreateTexture2D({framebufferWidth, framebufferHeight}, Fwog::Format::R8G8B8A8_SRGB) },
         .spritesUniformsBuffer = Fwog::TypedBuffer<SpriteUniforms>(1024, Fwog::BufferStorageFlag::DYNAMIC_STORAGE),
-        .frameUniformsBuffer = Fwog::TypedBuffer<FrameUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE)
+        .frameUniformsBuffer = Fwog::TypedBuffer<FrameUniforms>(Fwog::BufferStorageFlag::DYNAMIC_STORAGE),
+        .boxVertexBuffer = Fwog::TypedBuffer<glm::vec2>(MakeBoxVertices()),
+        .circleVertexBuffer = Fwog::TypedBuffer<glm::vec2>(MakeCircleVertices(CIRCLE_SEGMENTS)),
       });
 
     auto bg_vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/FullScreenTri.vert.glsl"));
@@ -190,6 +219,14 @@ namespace client
       .fragmentShader = &simpleColor_fs,
       .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::LINE_LIST },
       .vertexInputState = lineInputDescs
+    });
+
+    auto primitive_vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/PrimitiveBatched.vert.glsl"));
+    _resources->primitivePipeline = Fwog::CompileGraphicsPipeline({
+      .vertexShader = &primitive_vs,
+      .fragmentShader = &simpleColor_fs,
+      .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::LINE_STRIP },
+      .vertexInputState = std::span(&linePosDesc, 1)
     });
   }
 
@@ -281,6 +318,11 @@ namespace client
 
   void Renderer::DrawLines(std::span<const ecs::DebugLine> lines)
   {
+    if (lines.empty())
+    {
+      return;
+    }
+
     // TODO: remove
     auto view = glm::mat4(1);
     auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
@@ -296,5 +338,49 @@ namespace client
     Fwog::Cmd::BindVertexBuffer(0, vertexBuffer, 0, sizeof(ecs::DebugLine) / 2);
     Fwog::Cmd::Draw(static_cast<uint32_t>(lines.size() * 2), 1, 0, 0);
     Fwog::EndRendering();
+  }
+
+  void Renderer::DrawBoxes(std::span<const ecs::DebugBox> boxes)
+  {
+    if (boxes.empty())
+    {
+      return;
+    }
+
+    // TODO: remove
+    auto view = glm::mat4(1);
+    auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
+    auto cameraUniformBuffer = Fwog::Buffer(proj * view);
+
+    std::vector<PrimitiveUniforms> primitives;
+    primitives.reserve(boxes.size());
+    for (const auto& box : boxes)
+    {
+      glm::mat3x2 model = glm::scale(glm::rotate(glm::translate(glm::mat3(1), box.translation), box.rotation), box.scale);
+      primitives.push_back(PrimitiveUniforms{
+        .transform = model,
+        .color = box.color
+      });
+    }
+
+    auto instanceBuffer = Fwog::Buffer(std::span(primitives));
+
+    Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720}}},
+                                    .clearColorOnLoad = false });
+    Fwog::Cmd::BindGraphicsPipeline(_resources->primitivePipeline);
+    Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
+    Fwog::Cmd::BindStorageBuffer(0, instanceBuffer, 0, instanceBuffer.Size());
+    Fwog::Cmd::BindVertexBuffer(0, _resources->boxVertexBuffer, 0, sizeof(glm::vec2));
+    Fwog::Cmd::Draw(5, static_cast<uint32_t>(boxes.size()), 0, 0);
+    Fwog::EndRendering();
+  }
+
+  void Renderer::DrawCircles(std::span<const ecs::DebugCircle> circles)
+  {
+    G_ASSERT(false);
+    if (circles.empty())
+    {
+      return;
+    }
   }
 }

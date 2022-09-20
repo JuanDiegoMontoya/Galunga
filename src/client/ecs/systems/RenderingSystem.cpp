@@ -57,8 +57,7 @@ namespace client::ecs
         auto model = glm::mat3x2(1);
         model = glm::scale(glm::rotate(glm::translate(glm::mat3(1), transform.translation), transform.rotation), transform.scale);
 
-        sprites.push_back(
-          RenderableSprite{
+        sprites.push_back(RenderableSprite{
           .transform = model,
           .texture = tex,
           .spriteIndex = sprite.index,
