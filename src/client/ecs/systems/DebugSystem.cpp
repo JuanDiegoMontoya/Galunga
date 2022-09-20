@@ -60,7 +60,7 @@ namespace client::ecs
 
     _renderer->DrawLines(lines);
     _renderer->DrawBoxes(boxes);
-    //_renderer->DrawCircles(circles);
+    _renderer->DrawCircles(circles);
 
     // draw debug GUI
     ImGui_ImplOpenGL3_NewFrame();

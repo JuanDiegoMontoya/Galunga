@@ -94,7 +94,8 @@ namespace client
     auto& transform = entity.AddComponent<shared::ecs::Transform>();
     transform.scale = { 10, 10 };
     transform.translation = { 0, -3 };
-    transform.rotation = 3.14f / 4.0f;
+    //transform.rotation = 3.14f / 4.0f;
+    transform.rotation = 0;
     entity.AddComponent<shared::ecs::Sprite>().index = 0;
     entity.AddComponent<shared::ecs::Collider>();
 
@@ -107,6 +108,15 @@ namespace client
     line.p1 = { 5, 5 };
     line.color0 = { 255, 0, 0, 255 };
     line.color1 = { 0, 255, 0, 255 };
+    auto& box = e1.AddComponent<client::ecs::DebugBox>();
+    box.translation = { 5, -5 };
+    box.scale = { 1, 1 };
+    box.rotation = 0;
+    box.color = { 0, 0, 255, 255 };
+    auto& circle = e1.AddComponent<client::ecs::DebugCircle>();
+    circle.translation = { 10, 0 };
+    circle.radius = 5;
+    circle.color = { 127, 255, 55, 255 };
 
     _eventBus->Publish(shared::ecs::AddSprite{ .path = "assets/textures/test2.png" });
     
@@ -128,6 +138,14 @@ namespace client
       double dt = timer.Elapsed_s();
       timer.Reset();
 
+      // If dt is above a threshold, then the application was probably paused for debugging.
+      // We don't want the simulation to suddenly advance super far, so let's clamp and log the lag spike.
+      if (dt > 1.0)
+      {
+        dt = 1.0;
+        // log something
+      }
+
       simulationAccum += dt;
       while (simulationAccum > _simulationTick)
       {
@@ -145,6 +163,10 @@ namespace client
       //transform.rotation += float(3.14 * dt);
       //transform.scale *= .999f;
       transform.translation.x += float(1.0 * dt);
+
+      line.p1.y += float(.5 * dt);
+      box.scale.y *= float(1.0f + dt);
+      box.rotation += .01f;
 
       renderingSystem.Update(dt);
       debugSystem.Update(dt);

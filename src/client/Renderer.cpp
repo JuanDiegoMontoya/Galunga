@@ -95,7 +95,17 @@ namespace client
 
     std::vector<glm::vec2> MakeCircleVertices([[maybe_unused]] int segments)
     {
-      return {};
+      std::vector<glm::vec2> vertices;
+      vertices.reserve(segments + 1);
+
+      for (int i = 0; i < segments; i++)
+      {
+        float theta = float(i) * glm::two_pi<float>() / segments;
+        vertices.push_back({std::cos(theta), std::sin(theta)});
+      }
+
+      vertices.push_back({ 1, 0 });
+      return vertices;
     }
 
     constexpr std::uint32_t CIRCLE_SEGMENTS = 50;
@@ -198,6 +208,13 @@ namespace client
     // debug pipelines
     auto simpleColor_fs = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile("assets/shaders/SimpleColor.frag.glsl"));
 
+    auto colorBlend = Fwog::ColorBlendAttachmentState
+    {
+      .blendEnable = true,
+      .srcColorBlendFactor = Fwog::BlendFactor::SRC_ALPHA,
+      .dstColorBlendFactor = Fwog::BlendFactor::ONE_MINUS_SRC_ALPHA,
+    };
+
     auto lines_vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/LinesBatched.vert.glsl"));
     auto linePosDesc = Fwog::VertexInputBindingDescription
     {
@@ -214,11 +231,13 @@ namespace client
       .offset = offsetof(ecs::DebugLine, color0),
     };
     auto lineInputDescs = { linePosDesc, lineColorDesc };
+
     _resources->linesPipeline = Fwog::CompileGraphicsPipeline({
       .vertexShader = &lines_vs,
       .fragmentShader = &simpleColor_fs,
       .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::LINE_LIST },
-      .vertexInputState = lineInputDescs
+      .vertexInputState = lineInputDescs,
+      .colorBlendState = {.attachments = std::span(&colorBlend, 1) }
     });
 
     auto primitive_vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/PrimitiveBatched.vert.glsl"));
@@ -226,7 +245,8 @@ namespace client
       .vertexShader = &primitive_vs,
       .fragmentShader = &simpleColor_fs,
       .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::LINE_STRIP },
-      .vertexInputState = std::span(&linePosDesc, 1)
+      .vertexInputState = std::span(&linePosDesc, 1),
+      .colorBlendState = { .attachments = std::span(&colorBlend, 1) }
     });
   }
 
@@ -377,10 +397,36 @@ namespace client
 
   void Renderer::DrawCircles(std::span<const ecs::DebugCircle> circles)
   {
-    G_ASSERT(false);
     if (circles.empty())
     {
       return;
     }
+
+    // TODO: remove
+    auto view = glm::mat4(1);
+    auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
+    auto cameraUniformBuffer = Fwog::Buffer(proj * view);
+
+    std::vector<PrimitiveUniforms> primitives;
+    primitives.reserve(circles.size());
+    for (const auto& circle : circles)
+    {
+      glm::mat3x2 model = glm::scale(glm::translate(glm::mat3(1), circle.translation), glm::vec2(circle.radius));
+      primitives.push_back(PrimitiveUniforms{
+        .transform = model,
+        .color = circle.color
+        });
+    }
+
+    auto instanceBuffer = Fwog::Buffer(std::span(primitives));
+
+    Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720}}},
+                                    .clearColorOnLoad = false });
+    Fwog::Cmd::BindGraphicsPipeline(_resources->primitivePipeline);
+    Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
+    Fwog::Cmd::BindStorageBuffer(0, instanceBuffer, 0, instanceBuffer.Size());
+    Fwog::Cmd::BindVertexBuffer(0, _resources->circleVertexBuffer, 0, sizeof(glm::vec2));
+    Fwog::Cmd::Draw(CIRCLE_SEGMENTS + 1, static_cast<uint32_t>(circles.size()), 0, 0);
+    Fwog::EndRendering();
   }
 }
