@@ -193,6 +193,11 @@ namespace client
         .circleVertexBuffer = Fwog::TypedBuffer<glm::vec2>(MakeCircleVertices(CIRCLE_SEGMENTS)),
       });
 
+    auto view = glm::mat4(1);
+    auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
+    auto viewproj = proj * view;
+    _resources->frameUniformsBuffer.SubDataTyped({ viewproj });
+
     auto bg_vs = Fwog::Shader(Fwog::PipelineStage::VERTEX_SHADER, LoadFile("assets/shaders/FullScreenTri.vert.glsl"));
     auto bg_fs = Fwog::Shader(Fwog::PipelineStage::FRAGMENT_SHADER, LoadFile("assets/shaders/Texture.frag.glsl"));
     _resources->backgroundPipeline = Fwog::CompileGraphicsPipeline({ .vertexShader = &bg_vs, .fragmentShader = &bg_fs });
@@ -274,11 +279,6 @@ namespace client
       return;
     }
 
-    // TODO: remove
-    auto view = glm::mat4(1);
-    auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
-    auto cameraUniformBuffer = Fwog::Buffer(proj * view);
-
     // sort sprites by texture
     std::sort(std::execution::par,
       sprites.begin(),
@@ -316,7 +316,7 @@ namespace client
 
     Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720} } } });
     Fwog::Cmd::BindGraphicsPipeline(_resources->quadBatchedPipeline);
-    Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
+    Fwog::Cmd::BindUniformBuffer(0, _resources->frameUniformsBuffer, 0, _resources->frameUniformsBuffer.Size());
     Fwog::Cmd::BindStorageBuffer(0, _resources->spritesUniformsBuffer, 0, _resources->spritesUniformsBuffer.Size());
 
     std::size_t firstInstance = 0;
@@ -342,11 +342,6 @@ namespace client
     {
       return;
     }
-
-    // TODO: remove
-    auto view = glm::mat4(1);
-    auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
-    auto cameraUniformBuffer = Fwog::Buffer(proj * view);
     
     // this buffer doesn't need to be created every frame
     auto vertexBuffer = Fwog::Buffer(lines);
@@ -354,7 +349,7 @@ namespace client
     Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720}}},
                                     .clearColorOnLoad = false });
     Fwog::Cmd::BindGraphicsPipeline(_resources->linesPipeline);
-    Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
+    Fwog::Cmd::BindUniformBuffer(0, _resources->frameUniformsBuffer, 0, _resources->frameUniformsBuffer.Size());
     Fwog::Cmd::BindVertexBuffer(0, vertexBuffer, 0, sizeof(ecs::DebugLine) / 2);
     Fwog::Cmd::Draw(static_cast<uint32_t>(lines.size() * 2), 1, 0, 0);
     Fwog::EndRendering();
@@ -366,11 +361,6 @@ namespace client
     {
       return;
     }
-
-    // TODO: remove
-    auto view = glm::mat4(1);
-    auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
-    auto cameraUniformBuffer = Fwog::Buffer(proj * view);
 
     std::vector<PrimitiveUniforms> primitives;
     primitives.reserve(boxes.size());
@@ -388,7 +378,7 @@ namespace client
     Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720}}},
                                     .clearColorOnLoad = false });
     Fwog::Cmd::BindGraphicsPipeline(_resources->primitivePipeline);
-    Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
+    Fwog::Cmd::BindUniformBuffer(0, _resources->frameUniformsBuffer, 0, _resources->frameUniformsBuffer.Size());
     Fwog::Cmd::BindStorageBuffer(0, instanceBuffer, 0, instanceBuffer.Size());
     Fwog::Cmd::BindVertexBuffer(0, _resources->boxVertexBuffer, 0, sizeof(glm::vec2));
     Fwog::Cmd::Draw(5, static_cast<uint32_t>(boxes.size()), 0, 0);
@@ -401,11 +391,6 @@ namespace client
     {
       return;
     }
-
-    // TODO: remove
-    auto view = glm::mat4(1);
-    auto proj = glm::ortho<float>(-10 * _resources->frame.AspectRatio(), 10 * _resources->frame.AspectRatio(), -10, 10, -1, 1);
-    auto cameraUniformBuffer = Fwog::Buffer(proj * view);
 
     std::vector<PrimitiveUniforms> primitives;
     primitives.reserve(circles.size());
@@ -423,7 +408,7 @@ namespace client
     Fwog::BeginSwapchainRendering({ .viewport = {.drawRect = {.offset{}, .extent{1280, 720}}},
                                     .clearColorOnLoad = false });
     Fwog::Cmd::BindGraphicsPipeline(_resources->primitivePipeline);
-    Fwog::Cmd::BindUniformBuffer(0, cameraUniformBuffer, 0, cameraUniformBuffer.Size());
+    Fwog::Cmd::BindUniformBuffer(0, _resources->frameUniformsBuffer, 0, _resources->frameUniformsBuffer.Size());
     Fwog::Cmd::BindStorageBuffer(0, instanceBuffer, 0, instanceBuffer.Size());
     Fwog::Cmd::BindVertexBuffer(0, _resources->circleVertexBuffer, 0, sizeof(glm::vec2));
     Fwog::Cmd::Draw(CIRCLE_SEGMENTS + 1, static_cast<uint32_t>(circles.size()), 0, 0);
