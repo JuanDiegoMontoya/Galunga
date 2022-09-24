@@ -61,7 +61,7 @@ namespace client::ecs
           .transform = model,
           .texture = tex,
           .spriteIndex = sprite.index,
-          .tint = glm::u8vec4(255)
+          .tint = sprite.tint
         });
       });
 

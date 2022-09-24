@@ -1,4 +1,5 @@
 #pragma once
+#include "shared/ecs/events/AxisBindingBase.h"
 #include "utils/EventBus.h"
 #include <vector>
 #include <variant>
@@ -10,11 +11,6 @@ struct GLFWwindow;
 
 namespace client::input
 {
-  namespace internal
-  {
-    class InputAccess;
-  }
-
   enum class Button
   {
     // mouse buttons
@@ -158,8 +154,7 @@ namespace client::input
     DOWN,
     PRESSED,
     UP,
-    RELEASED,
-    REPEAT
+    RELEASED
   };
 
   struct MouseScroll { bool down = false; };
@@ -174,11 +169,6 @@ namespace client::input
   {
     std::variant<Button, MouseScroll, MousePosition> type;
     float scale = 1;
-  };
-
-  struct AxisBindingBase
-  {
-    float magnitude = 0;
   };
 
   class InputManager
@@ -202,7 +192,7 @@ namespace client::input
     }
 
     template<class T>
-    requires (std::derived_from<T, AxisBindingBase>)
+    requires (std::derived_from<T, shared::ecs::AxisBindingBase>)
     void AddAxisBinding(const AxisInput& input)
     {
       _axisBindings.push_back(AxisBinding{
@@ -244,7 +234,7 @@ namespace client::input
     public:
       void DispatchEvent(EventBus* eventBus, float magnitude) const override
       {
-        eventBus->Publish(T{ false, magnitude });
+        eventBus->Publish(T{ magnitude });
       }
     };
 
@@ -271,6 +261,7 @@ namespace client::input
     std::vector<ActionBinding> _actionBindings;
     std::vector<AxisBinding> _axisBindings;
 
-    friend class internal::InputAccess;
+    class InputAccess;
+    friend class InputManager::InputAccess;
   };
 }

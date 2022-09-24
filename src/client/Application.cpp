@@ -9,9 +9,12 @@
 #include <GLFW/glfw3.h>
 #include <ecs/systems/core/LifetimeSystem.h>
 #include <ecs/systems/core/CollisionSystem.h>
+#include <ecs/systems/game/PlayerSystem.h>
+#include <ecs/systems/game/BulletSystem.h>
 #include <client/ecs/systems/RenderingSystem.h>
 #include <client/ecs/systems/DebugSystem.h>
 #include "Renderer.h"
+#include <shared/ecs/events/game/PlayerEvents.h>
 
 #include <utility>
 #include <stdexcept>
@@ -24,6 +27,7 @@
 #include <ecs/components/core/Collider.h>
 #include <ecs/events/Collision.h>
 #include <client/ecs/components/DebugDraw.h>
+#include <ecs/components/game/Player.h>
 
 namespace client
 {
@@ -89,6 +93,14 @@ namespace client
     auto collisionSystem = shared::ecs::CollisionSystem(&scene, _eventBus);
     auto renderingSystem = client::ecs::RenderingSystem(&scene, _eventBus, _window, &renderer);
     auto debugSystem = client::ecs::DebugSystem(&scene, _eventBus, _window, _networkClient, &renderer);
+    auto playerSystem = shared::ecs::PlayerSystem(&scene, _eventBus);
+    auto bulletSystem = shared::ecs::BulletSystem(&scene, _eventBus);
+
+    _input->AddAxisBinding<shared::ecs::PlayerMoveHorizontal>(input::AxisInput{ .type = input::Button::KEY_D, .scale = 5 });
+    _input->AddAxisBinding<shared::ecs::PlayerMoveHorizontal>(input::AxisInput{ .type = input::Button::KEY_A, .scale = -5 });
+    _input->AddAxisBinding<shared::ecs::PlayerMoveVertical>(input::AxisInput{ .type = input::Button::KEY_W, .scale = 5 });
+    _input->AddAxisBinding<shared::ecs::PlayerMoveVertical>(input::AxisInput{ .type = input::Button::KEY_S, .scale = -5 });
+    _input->AddActionBinding<shared::ecs::PlayerShoot>(input::ActionInput{ .type = input::Button::KEY_SPACE });
 
     shared::ecs::Entity entity = scene.CreateEntity("hello");
     auto& transform = entity.AddComponent<shared::ecs::Transform>();
@@ -96,7 +108,9 @@ namespace client
     transform.translation = { 0, -3 };
     //transform.rotation = 3.14f / 4.0f;
     transform.rotation = 0;
-    entity.AddComponent<shared::ecs::Sprite>().index = 0;
+    auto& sprite = entity.AddComponent<shared::ecs::Sprite>();
+    sprite.index = 0;
+    sprite.tint = { 0, 255, 255, 255 };
     entity.AddComponent<shared::ecs::Collider>();
 
     auto e1 = scene.CreateEntity("other");
@@ -117,6 +131,7 @@ namespace client
     circle.translation = { 10, 0 };
     circle.radius = 5;
     circle.color = { 127, 255, 55, 255 };
+    e1.AddComponent<shared::ecs::Player>();
 
     _eventBus->Publish(shared::ecs::AddSprite{ .path = "assets/textures/test2.png" });
     
@@ -140,6 +155,7 @@ namespace client
 
       // If dt is above a threshold, then the application was probably paused for debugging.
       // We don't want the simulation to suddenly advance super far, so let's clamp and log the lag spike.
+      // If it was a legitimate lag spike, then we want to log it anyways.
       if (dt > 1.0)
       {
         dt = 1.0;
@@ -152,6 +168,9 @@ namespace client
         _input->PollEvents(_simulationTick);
         _networkClient->Poll(_simulationTick);
         collisionSystem.Update(_simulationTick);
+        playerSystem.Update(_simulationTick);
+        bulletSystem.Update(_simulationTick);
+
         simulationAccum -= _simulationTick;
       }
 
@@ -162,10 +181,10 @@ namespace client
 
       //transform.rotation += float(3.14 * dt);
       //transform.scale *= .999f;
-      transform.translation.x += float(1.0 * dt);
+      //transform.translation.x += float(1.0 * dt);
 
-      line.p1.y += float(.5 * dt);
-      box.scale.y *= float(1.0f + dt);
+      //line.p1.y += float(.5 * dt);
+      //box.scale.y *= float(1.0f + dt);
       box.rotation += .01f;
 
       renderingSystem.Update(dt);

@@ -15,6 +15,8 @@ set(galunga_shared_source_files
 	"src/shared/ecs/systems/System.cpp"
 	"src/shared/ecs/systems/core/LifetimeSystem.cpp"
 	"src/shared/ecs/systems/core/CollisionSystem.cpp"
+	"src/shared/ecs/systems/game/PlayerSystem.cpp"
+	"src/shared/ecs/systems/game/BulletSystem.cpp"
 )
 
 set(galunga_shared_header_files
@@ -39,6 +41,13 @@ set(galunga_shared_header_files
 	"src/shared/ecs/components/core/Collider.h"
 	"src/shared/ecs/systems/core/CollisionSystem.h"
 	"src/shared/ecs/events/Collision.h"
+	"src/shared/ecs/components/game/Bullet.h"
+	"src/shared/ecs/components/game/Player.h"
+	"src/shared/ecs/components/game/Enemy.h"
+	"src/shared/ecs/systems/game/PlayerSystem.h"
+	"src/shared/ecs/events/game/PlayerEvents.h"
+	"src/shared/ecs/events/AxisBindingBase.h"
+	"src/shared/ecs/systems/game/BulletSystem.h"
 )
 
 set(galunga_client_source_files

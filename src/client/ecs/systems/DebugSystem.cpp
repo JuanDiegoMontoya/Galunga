@@ -2,8 +2,8 @@
 #include "client/net/Host.h"
 #include "shared/net/Address.h"
 #include "client/ecs/components/DebugDraw.h"
-#include <entt/entity/registry.hpp>
 #include "client/Renderer.h"
+#include <entt/entity/registry.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -69,6 +69,7 @@ namespace client::ecs
 
     ImGui::Begin("hello");
     ImGui::Text("Framerate: %fHz", 1.0 / dt);
+    ImGui::Text("Entities: %d", SceneRegistry()->size());
     static char buffer[512]{ "localhost" };
     static int port = 1234;
     ImGui::InputText("Server host", buffer, 512);

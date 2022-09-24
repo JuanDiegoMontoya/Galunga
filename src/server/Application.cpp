@@ -29,6 +29,7 @@ namespace server
       while (simulationAccum > _simulationTick)
       {
         _networkServer->Poll(_simulationTick);
+        simulationAccum -= _simulationTick;
       }
     }
   }
