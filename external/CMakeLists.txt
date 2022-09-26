@@ -44,7 +44,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     enet
     GIT_REPOSITORY https://github.com/JuanDiegoMontoya/enet.git
-    GIT_TAG        a683bb83dde5552871764f53f6a8f90d8d2e3d52
+    GIT_TAG        683d6eef18823173cd55a6014e68203dc4a0845d
     GIT_SHALLOW ON
 )
 
