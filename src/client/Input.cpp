@@ -137,7 +137,7 @@ namespace client::input
       {
         if (const auto* pScroll = std::get_if<MouseScroll>(&axis.type))
         {
-          dispatcher->DispatchEvent(_eventBus, axis.scale * scrollOffset * (pScroll->down ? -1.0f : 1.0f));
+          dispatcher->DispatchEvent(_eventBus, axis.scale * static_cast<float>(scrollOffset) * (pScroll->down ? -1.0f : 1.0f));
         }
       }
 
