@@ -234,7 +234,7 @@ namespace client::input
     public:
       void DispatchEvent(EventBus* eventBus, float magnitude) const override
       {
-        eventBus->Publish(T{ magnitude });
+        eventBus->Publish(T{ { magnitude } });
       }
     };
 

@@ -241,7 +241,7 @@ namespace client
       .vertexShader = &lines_vs,
       .fragmentShader = &simpleColor_fs,
       .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::LINE_LIST },
-      .vertexInputState = lineInputDescs,
+      .vertexInputState = { lineInputDescs },
       .colorBlendState = {.attachments = std::span(&colorBlend, 1) }
     });
 
@@ -250,7 +250,7 @@ namespace client
       .vertexShader = &primitive_vs,
       .fragmentShader = &simpleColor_fs,
       .inputAssemblyState = {.topology = Fwog::PrimitiveTopology::LINE_STRIP },
-      .vertexInputState = std::span(&linePosDesc, 1),
+      .vertexInputState = { std::span(&linePosDesc, 1) },
       .colorBlendState = { .attachments = std::span(&colorBlend, 1) }
     });
   }
