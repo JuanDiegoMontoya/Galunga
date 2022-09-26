@@ -13,8 +13,8 @@ namespace shared::ecs
   public:
     Entity() = default;
     Entity(entt::entity entityHandle, Scene* scene)
-      : _entityHandle(entityHandle),
-        _scene(scene)
+      : _scene(scene),
+        _entityHandle(entityHandle)
     {
     }
 
