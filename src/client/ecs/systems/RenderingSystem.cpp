@@ -23,7 +23,7 @@ namespace client::ecs
     int y{};
     int nc{};
     stbi_set_flip_vertically_on_load(true);
-    auto* pixels = stbi_load("assets/textures/test.png", &x, &y, &nc, 4);
+    auto* pixels = stbi_load("assets/textures/doge.png", &x, &y, &nc, 4);
 
     _backgroundTexture = std::make_unique<Fwog::Texture>(Fwog::CreateTexture2D({ static_cast<uint32_t>(x), static_cast<uint32_t>(y) }, Fwog::Format::R8G8B8A8_SRGB));
     _backgroundTexture->SubImage({ .dimension = Fwog::UploadDimension::TWO,
