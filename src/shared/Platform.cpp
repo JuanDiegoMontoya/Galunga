@@ -1,4 +1,5 @@
 #include "Platform.h"
+#include <climits>
 #include <limits>
 
 // required for serialization
