@@ -142,7 +142,11 @@ target_include_directories(galunga_common PUBLIC
 )
 
 target_link_libraries(galunga_common PUBLIC glm EnTT::EnTT cereal)
-target_link_libraries(galunga_client fwog  glfw lib_glad imgui stb galunga_common)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	target_link_libraries(galunga_client fwog  glfw lib_glad imgui stb galunga_common)
+else()
+	target_link_libraries(galunga_client fwog  glfw lib_glad imgui stb galunga_common tbb)
+endif()
 target_link_libraries(galunga_server galunga_common)
 
 add_custom_target(copy_assets ALL COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/data/assets ${CMAKE_CURRENT_BINARY_DIR}/assets)
