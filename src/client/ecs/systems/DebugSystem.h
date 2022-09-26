@@ -27,5 +27,7 @@ namespace client::ecs
     Renderer* _renderer;
     GLFWwindow* _window;
     net::Host* _networkClient;
+
+    int _fakeLag_ms = 0;
   };
 }

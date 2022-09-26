@@ -3,6 +3,8 @@
 #include "shared/net/Address.h"
 #include "client/ecs/components/DebugDraw.h"
 #include "client/Renderer.h"
+#include "Platform.h"
+#include "utils/Timer.h"
 #include <entt/entity/registry.hpp>
 
 #include <imgui.h>
@@ -68,8 +70,22 @@ namespace client::ecs
     ImGui::NewFrame();
 
     ImGui::Begin("hello");
-    ImGui::Text("Framerate: %fHz", 1.0 / dt);
-    ImGui::Text("Entities: %d", SceneRegistry()->size());
+    ImGui::Text("Framerate: %.0fHz", 1.0 / dt);
+    ImGui::Text("Entities: %d", SceneRegistry()->alive());
+    if (ImGui::Button("Nuke Entities"))
+    {
+      SceneRegistry()->clear();
+    }
+    ImGui::SliderInt("Fake Lag (ms)", &_fakeLag_ms, 0, 100);
+    if (_fakeLag_ms > 0)
+    {
+      Timer timer;
+      while (int(timer.Elapsed_ms()) < _fakeLag_ms)
+      {
+        G_PAUSE();
+      }
+    }
+
     static char buffer[512]{ "localhost" };
     static int port = 1234;
     ImGui::InputText("Server host", buffer, 512);
