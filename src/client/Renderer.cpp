@@ -1,5 +1,5 @@
 #include "Renderer.h"
-#include "Gassert.h"
+#include "GAssert.h"
 #include "utils/LoadFile.h"
 #include <Fwog/Rendering.h>
 #include <Fwog/Pipeline.h>
