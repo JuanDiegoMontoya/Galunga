@@ -96,11 +96,13 @@ namespace client
     auto playerSystem = shared::ecs::PlayerSystem(&scene, _eventBus);
     auto bulletSystem = shared::ecs::BulletSystem(&scene, _eventBus);
 
+    // TODO: Load these bindings from a config file
     _input->AddAxisBinding<shared::ecs::PlayerMoveHorizontal>(input::AxisInput{ .type = input::Button::KEY_D, .scale = 5 });
     _input->AddAxisBinding<shared::ecs::PlayerMoveHorizontal>(input::AxisInput{ .type = input::Button::KEY_A, .scale = -5 });
     _input->AddAxisBinding<shared::ecs::PlayerMoveVertical>(input::AxisInput{ .type = input::Button::KEY_W, .scale = 5 });
     _input->AddAxisBinding<shared::ecs::PlayerMoveVertical>(input::AxisInput{ .type = input::Button::KEY_S, .scale = -5 });
-    _input->AddActionBinding<shared::ecs::PlayerShoot>(input::ActionInput{ .type = input::Button::KEY_SPACE });
+    //_input->AddActionBinding<shared::ecs::PlayerShoot>(input::ActionInput{ .type = input::Button::KEY_SPACE });
+    _input->AddAxisBinding<shared::ecs::PlayerShoot>(input::AxisInput{ .type = input::Button::KEY_SPACE });
 
     shared::ecs::Entity entity = scene.CreateEntity("hello");
     auto& transform = entity.AddComponent<shared::ecs::Transform>();
@@ -133,7 +135,7 @@ namespace client
     circle.color = { 127, 255, 55, 255 };
     e1.AddComponent<shared::ecs::Player>();
 
-    _eventBus->Publish(shared::ecs::AddSprite{ .path = "assets/textures/test2.png" });
+    _eventBus->Publish(shared::ecs::AddSprite{ .path = "assets/textures/spaceship.png" });
     
     struct Test
     {
@@ -167,6 +169,7 @@ namespace client
       {
         _input->PollEvents(_simulationTick);
         _networkClient->Poll(_simulationTick);
+        lifetimeSystem.Update(_simulationTick);
         collisionSystem.Update(_simulationTick);
         playerSystem.Update(_simulationTick);
         bulletSystem.Update(_simulationTick);

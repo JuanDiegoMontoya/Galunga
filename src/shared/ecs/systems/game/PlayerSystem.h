@@ -13,6 +13,9 @@ namespace shared::ecs
 
   private:
     static constexpr float MAX_SPEED = 2;
+    static constexpr float SHOOT_DELAY = 1.0f / 10.0f;
+    float timeSinceLastShot = 0;
+    bool isShooting = false;
     float horizontalMovement = 0;
     float verticalMovement = 0;
 

@@ -18,7 +18,8 @@ namespace shared::ecs
     for (auto&& [entity, transform, bullet] : SceneRegistry()->view<ecs::Transform, ecs::Bullet>().each())
     {
       transform.translation += bullet.velocity * float(dt);
-      bullet.velocity = glm::mat2(glm::rotate(glm::mat3(1), float(3.14 * dt))) * bullet.velocity;
+      bullet.velocity = glm::mat2(glm::rotate(glm::mat3(1), float(3.14 * dt / 8.))) * bullet.velocity;
+      transform.rotation += float(3.14 * dt / 8.);
     }
   }
 }

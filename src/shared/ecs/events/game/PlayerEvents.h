@@ -5,5 +5,5 @@ namespace shared::ecs
 {
   struct PlayerMoveHorizontal : AxisBindingBase {};
   struct PlayerMoveVertical : AxisBindingBase {};
-  struct PlayerShoot {};
+  struct PlayerShoot : AxisBindingBase {};
 }
